@@ -1,6 +1,6 @@
 {
   "name": "decky-fsg",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "FSG (Free Steam Game), a Decky plugin: lists Steam free-to-keep games (100% off) and adds them to your library, automatically if you want.",
   "type": "module",
   "scripts": {

@@ -306,6 +306,36 @@ def _claim_license(session, game):
     return False, "Steam n'a pas confirmé l'ajout."
 
 
+# --------------------------------------------------------------------------- updates
+
+REPO = "koua29/decky-fsg"
+ZIP_NAME = "FSG.zip"
+UPDATE_INTERVAL = 86400  # one GitHub check per day
+CURRENT_VERSION = getattr(decky, "DECKY_PLUGIN_VERSION", "0.0.0")
+
+
+def _version_tuple(version):
+    return tuple(int(n) for n in re.findall(r"\d+", version)[:3])
+
+
+def _latest_release(current):
+    """Latest GitHub release of the plugin, compared with the installed version."""
+    release = json.loads(_http(f"https://api.github.com/repos/{REPO}/releases/latest"))
+    asset = next((a for a in release.get("assets", []) if a.get("name") == ZIP_NAME), {})
+    latest = release.get("tag_name", "").lstrip("v")
+    digest = asset.get("digest") or ""
+    return {
+        "current": current,
+        "latest": latest,
+        "available": bool(asset) and _version_tuple(latest) > _version_tuple(current),
+        "title": release.get("name", ""),
+        "notes": (release.get("body") or "")[:800],
+        "url": release.get("html_url", ""),
+        "zip_url": asset.get("browser_download_url", ""),
+        "zip_sha256": digest[7:] if digest.startswith("sha256:") else "",
+    }
+
+
 # --------------------------------------------------------------------------- plugin
 
 class Plugin:
@@ -316,6 +346,8 @@ class Plugin:
     logged_in = None
     error = ""
     checking = False
+    update = None
+    last_update_check = 0
     lock = None
     task = None
 
@@ -356,6 +388,9 @@ class Plugin:
                 asyncio.get_event_loop().create_task(self._check())
         return self.settings
 
+    async def check_update(self):
+        return self.update if await self._check_update() else None
+
     # ---- internals
 
     def _get_lock(self):
@@ -372,18 +407,41 @@ class Plugin:
             "checking": self.checking,
             "settings": self.settings,
             "claimed": self.memory["claimed"][-5:][::-1],
+            "version": CURRENT_VERSION,
+            "update": self.update,
         }
 
     async def _loop(self):
         await asyncio.sleep(FIRST_CHECK_DELAY)
         while True:
-            try:
-                await self._check()
-            except asyncio.CancelledError:
-                raise
-            except Exception:
-                decky.logger.exception("Automatic check failed")
+            for job in (self._check, self._check_update_if_due):
+                try:
+                    await job()
+                except asyncio.CancelledError:
+                    raise
+                except Exception:
+                    decky.logger.exception("Automatic %s failed", job.__name__)
             await asyncio.sleep(CHECK_INTERVAL)
+
+    async def _check_update_if_due(self):
+        if time.time() - self.last_update_check >= UPDATE_INTERVAL:
+            await self._check_update()
+
+    async def _check_update(self):
+        self.last_update_check = time.time()
+        try:
+            self.update = await asyncio.to_thread(_latest_release, CURRENT_VERSION)
+        except (OSError, ValueError) as e:
+            decky.logger.warning("Update check failed: %s", e)
+            return False
+        latest = self.update["latest"]
+        if self.update["available"] and self.memory.get("update_notified") != latest:
+            self.memory["update_notified"] = latest
+            _save(MEMORY_FILE, self.memory)
+            if self.settings["notify"]:
+                await decky.emit("fsg_update", latest, self.update["title"])
+        await decky.emit("fsg_state", self._snapshot())
+        return True
 
     async def _check(self):
         async with self._get_lock():

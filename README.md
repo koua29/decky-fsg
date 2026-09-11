@@ -37,7 +37,17 @@ Télécharger `FSG.zip` depuis la page [Releases](https://github.com/koua29/deck
 
 SteamDB n'est pas interrogé automatiquement : le site bloque les requêtes hors navigateur (Cloudflare, HTTP 403).
 
-**Statut** : première version (0.1.0). En cas de souci, les journaux sont dans `~/homebrew/logs/FSG/` : ouvre une [issue](https://github.com/koua29/decky-fsg/issues) avec leur contenu.
+**Statut** : projet jeune (0.x). En cas de souci, les journaux sont dans `~/homebrew/logs/FSG/` : ouvre une [issue](https://github.com/koua29/decky-fsg/issues) avec leur contenu.
+
+## 🔄 Mises à jour
+
+FSG vérifie une fois par jour s'il existe une nouvelle version sur GitHub. Si c'est le cas, une notification s'affiche et le panneau propose **Mettre à jour** : Decky ouvre sa fenêtre de confirmation habituelle, vérifie l'empreinte SHA-256 du zip, puis recharge le plugin. Les réglages et l'historique sont rangés hors du dossier du plugin, dans `~/homebrew/settings/FSG/` et `~/homebrew/data/FSG/`, et ne sont pas touchés.
+
+Tu peux aussi vérifier à la main (Options → **Vérifier les mises à jour**), ou réinstaller par l'URL ci-dessus, qui pointe toujours vers la dernière version.
+
+Depuis la 0.1.0, qui n'a pas cette vérification, il faut réinstaller une fois par l'URL.
+
+Chaque version est publiée dans les [Releases](https://github.com/koua29/decky-fsg/releases) avec un tag `vX.Y.Z` et la liste des nouveautés.
 
 ## 🛠️ Développement
 

@@ -34,6 +34,17 @@ interface Settings {
   notify: boolean;
 }
 
+interface Update {
+  current: string;
+  latest: string;
+  available: boolean;
+  title: string;
+  notes: string;
+  url: string;
+  zip_url: string;
+  zip_sha256: string;
+}
+
 interface State {
   games: Game[];
   last_check: number;
@@ -42,6 +53,8 @@ interface State {
   checking: boolean;
   settings: Settings;
   claimed: { appid: number; name: string; ts: number }[];
+  version: string;
+  update: Update | null;
 }
 
 interface ClaimResult {
@@ -53,8 +66,11 @@ const getState = callable<[], State>("get_state");
 const refresh = callable<[], State>("refresh");
 const claim = callable<[appid: number], ClaimResult>("claim");
 const setSetting = callable<[key: keyof Settings, value: boolean], Settings>("set_setting");
+const checkUpdate = callable<[], Update | null>("check_update");
 
 const STEAMDB_FREE_URL = "https://steamdb.info/upcoming/free/";
+const PLUGIN_NAME = "FSG";
+const INSTALL_TYPE_UPDATE = 2; // InstallType.UPDATE in Decky Loader
 
 const muted = { fontSize: "12px", lineHeight: "16px", opacity: 0.7 };
 
@@ -74,6 +90,24 @@ function openWeb(url: string) {
   Navigation.CloseSideMenus();
 }
 
+async function installUpdate(update: Update) {
+  // Same call as Decky's own store: Decky shows its install prompt, checks the
+  // SHA-256 of the zip, then reloads the plugin.
+  const backend = (window as any).DeckyBackend;
+  if (backend?.call) {
+    await backend.call(
+      "utilities/install_plugin",
+      update.zip_url,
+      PLUGIN_NAME,
+      update.latest,
+      update.zip_sha256,
+      INSTALL_TYPE_UPDATE,
+    );
+  } else {
+    openWeb(update.url);
+  }
+}
+
 function formatDate(ts: number) {
   return new Date(ts * 1000).toLocaleString("fr-FR", {
     weekday: "short",
@@ -82,6 +116,40 @@ function formatDate(ts: number) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function UpdateBanner({ update }: { update: Update }) {
+  const [installing, setInstalling] = useState(false);
+
+  const onInstall = async () => {
+    setInstalling(true);
+    try {
+      await installUpdate(update);
+    } finally {
+      setInstalling(false);
+    }
+  };
+
+  return (
+    <PanelSection title="Mise à jour disponible">
+      <PanelSectionRow>
+        <div style={muted}>
+          Version {update.latest} disponible (installée : {update.current}).
+          {update.title && <div style={{ fontWeight: "bold" }}>{update.title}</div>}
+        </div>
+      </PanelSectionRow>
+      <PanelSectionRow>
+        <ButtonItem layout="below" disabled={installing} onClick={onInstall}>
+          {installing ? "Installation…" : `Mettre à jour vers ${update.latest}`}
+        </ButtonItem>
+      </PanelSectionRow>
+      <PanelSectionRow>
+        <ButtonItem layout="below" onClick={() => openWeb(update.url)}>
+          Voir les nouveautés
+        </ButtonItem>
+      </PanelSectionRow>
+    </PanelSection>
+  );
 }
 
 function GameCard({
@@ -138,6 +206,7 @@ function Content() {
   const [state, setState] = useState<State | null>(null);
   const [busy, setBusy] = useState(false);
   const [claiming, setClaiming] = useState<number | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const doRefresh = async () => {
     setBusy(true);
@@ -174,6 +243,21 @@ function Content() {
     }
   };
 
+  const onCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const update = await checkUpdate();
+      if (update) setState((s) => (s ? { ...s, update } : s));
+      if (!update) {
+        toaster.toast({ title: "Vérification impossible", body: "GitHub injoignable, réessaie plus tard." });
+      } else if (!update.available) {
+        toaster.toast({ title: "FSG est à jour", body: `Version ${update.current}`, logo: <Logo size="100%" /> });
+      }
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
   const toggle = async (key: keyof Settings, value: boolean) => {
     const settings = await setSetting(key, value);
     setState((s) => (s ? { ...s, settings } : s));
@@ -200,6 +284,8 @@ function Content() {
           </div>
         </PanelSectionRow>
       </PanelSection>
+
+      {state.update?.available && <UpdateBanner update={state.update} />}
 
       <PanelSection title="Gratuits à garder">
         {state.logged_in === false && (
@@ -259,10 +345,18 @@ function Content() {
         <PanelSectionRow>
           <ToggleField
             label="Notifications"
-            description="Prévient quand un jeu est détecté ou ajouté."
+            description="Prévient quand un jeu est détecté ou ajouté, ou qu'une mise à jour sort."
             checked={state.settings.notify}
             onChange={(v) => toggle("notify", v)}
           />
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ButtonItem layout="below" disabled={checkingUpdate} onClick={onCheckUpdate}>
+            {checkingUpdate ? "Recherche…" : "Vérifier les mises à jour"}
+          </ButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <div style={muted}>Version {state.version}</div>
         </PanelSectionRow>
       </PanelSection>
 
@@ -310,6 +404,15 @@ export default definePlugin(() => {
         onClick: () => openStore(appid),
       }),
   );
+  const onUpdate = addEventListener<[version: string, title: string]>(
+    "fsg_update",
+    (version, title) =>
+      toaster.toast({
+        title: `Mise à jour FSG ${version} disponible`,
+        body: title || "Ouvre FSG dans le menu Decky pour l'installer.",
+        logo: <Logo size="100%" />,
+      }),
+  );
 
   return {
     name: "FSG",
@@ -327,6 +430,7 @@ export default definePlugin(() => {
     onDismount() {
       removeEventListener("fsg_claimed", onClaimed);
       removeEventListener("fsg_new", onNew);
+      removeEventListener("fsg_update", onUpdate);
     },
   };
 });
