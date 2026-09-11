@@ -1,0 +1,11 @@
+{
+  "name": "FSG",
+  "author": "koua29",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["steam", "free-games", "store"],
+    "description": "Liste les jeux Steam gratuits à garder (remise de 100 %) et les ajoute à ta bibliothèque, automatiquement si tu veux.",
+    "image": ""
+  }
+}

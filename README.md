@@ -1,0 +1,85 @@
+<p align="center"><img src="docs/fsg-banner.jpeg" alt="FSG — Free Steam Game, plugin Steam Deck" width="100%"></p>
+
+# FSG — Free Steam Game
+
+Plugin **[Decky Loader](https://decky.xyz/)** pour **SteamOS** (Steam Deck, Lenovo Legion Go S / Go 2…). Il liste les jeux Steam **gratuits à garder** (remise temporaire de 100 %) dans le menu d'accès rapide, et les ajoute à ta bibliothèque en un clic, ou tout seul.
+
+## ✨ Fonctions
+
+- Liste des promos gratuites en cours, lues directement sur le store Steam : prix normal, date de fin quand Steam l'affiche.
+- **Ajouter à ma bibliothèque** : ajoute la licence gratuite à ton compte sans ouvrir le Store.
+- **Ajout automatique** (option, activée par défaut) : vérification toutes les heures ; chaque nouveau jeu à 0 € est ajouté et une notification s'affiche.
+- DLC gratuits en option, notifications désactivables.
+- **Ouvrir SteamDB** : affiche les promos à venir dans le navigateur de Steam.
+
+## 📥 Installation
+
+Prérequis : une console sous SteamOS avec [Decky Loader](https://decky.xyz/) installé.
+
+### Depuis la console, par URL (le plus simple)
+
+1. Decky → ⚙️ Paramètres → Général → activer le **Mode développeur**.
+2. Decky → ⚙️ → **Développeur** → **Installer un plugin depuis une URL**, puis coller :
+   ```
+   https://github.com/koua29/decky-fsg/releases/latest/download/FSG.zip
+   ```
+3. Valider : **FSG** apparaît dans la liste des plugins Decky.
+
+### Avec le fichier ZIP
+
+Télécharger `FSG.zip` depuis la page [Releases](https://github.com/koua29/decky-fsg/releases), puis Decky → ⚙️ → Développeur → **Installer un plugin depuis un fichier ZIP**.
+
+## ⚙️ Fonctionnement
+
+- **Promos** : recherche du store Steam `maxprice=free&specials=1` (jeux payants affichés à 0 €), puis `appdetails` et la page du jeu pour trouver le paquet gratuit (`subid`).
+- **Ajout** : même requête que le bouton « Ajouter au compte » du store (`/freelicense/addfreelicense/<subid>`), puis vérification dans la liste des licences du compte.
+- **Session** : le plugin lit localement les cookies du store dans le navigateur intégré de Steam, via le port de débogage CEF que Decky utilise déjà (`127.0.0.1:8080`). Ils ne sont envoyés qu'à `store.steampowered.com`.
+
+SteamDB n'est pas interrogé automatiquement : le site bloque les requêtes hors navigateur (Cloudflare, HTTP 403).
+
+**Statut** : première version (0.1.0). En cas de souci, les journaux sont dans `~/homebrew/logs/FSG/` : ouvre une [issue](https://github.com/koua29/decky-fsg/issues) avec leur contenu.
+
+## 🛠️ Développement
+
+```bash
+npm install
+npm run build
+```
+
+Paquet : un dossier `FSG/` contenant `dist/`, `main.py`, `plugin.json`, `package.json`, `LICENSE` et `README.md`.
+
+## 🎮 Consoles SteamOS
+
+*Liens partenaires Amazon : si vous achetez via ces liens, le projet touche une petite commission, sans surcoût pour vous. Ce sont des consoles portables sous SteamOS, sur lesquelles FSG s'installe avec Decky Loader.*
+
+<table>
+<tr>
+<td align="center" width="33%">
+  <a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?tag=koua29-21"><img src="assets/amazon-B0CQ3RWQQZ.jpg" width="200" alt="Steam Deck OLED"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?tag=koua29-21">Steam Deck OLED</a></b><br><sub>La console SteamOS de Valve</sub>
+</td>
+<td align="center" width="33%">
+  <a href="https://www.amazon.fr/dp/B0DWFY5G1N?tag=koua29-21"><img src="assets/amazon-B0DWFY5G1N.jpg" width="200" alt="Lenovo Legion Go S"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0DWFY5G1N?tag=koua29-21">Lenovo Legion Go S</a></b><br><sub>Livrée sous SteamOS</sub>
+</td>
+<td align="center" width="33%">
+  <a href="https://www.amazon.fr/dp/B0FYR394K5?tag=koua29-21"><img src="assets/amazon-B0FYR394K5.jpg" width="200" alt="Lenovo Legion Go 2"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0FYR394K5?tag=koua29-21">Lenovo Legion Go 2</a></b><br><sub>Écran OLED 8,8&quot; · compatible SteamOS</sub>
+</td>
+</tr>
+</table>
+
+<sub>En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. · As an Amazon Associate I earn from qualifying purchases.</sub>
+
+## ☕ Offrez-moi un café
+
+Ce projet est gratuit et open source. S'il vous est utile, vous pouvez me remercier
+en m'offrant un café — il suffit de scanner ce QR code PayPal. Merci beaucoup ! 🙏
+
+<p align="center">
+  <img src="docs/paypal-qr.png" alt="QR code PayPal pour offrir un café" width="220" />
+</p>
+
+## 📄 Licence
+
+**MIT** — voir [LICENSE](LICENSE). Projet non officiel, non affilié à Valve ni à Lenovo. Steam et SteamOS sont des marques de Valve Corporation.
