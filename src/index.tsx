@@ -60,18 +60,31 @@ async function installUpdate(update: Update) {
   // Same call as Decky's own store: Decky shows its install prompt, checks the
   // SHA-256 of the zip, then reloads the plugin.
   const backend = (window as any).DeckyBackend;
-  if (backend?.call) {
-    await backend.call(
-      "utilities/install_plugin",
-      update.zip_url,
-      PLUGIN_NAME,
-      update.latest,
-      update.zip_sha256,
-      INSTALL_TYPE_UPDATE,
-    );
-  } else {
+  if (!backend?.call) {
     openWeb(update.url);
+    return;
   }
+  await backend.call(
+    "utilities/install_plugin",
+    update.zip_url,
+    PLUGIN_NAME,
+    update.latest,
+    update.zip_sha256,
+    INSTALL_TYPE_UPDATE,
+  );
+  // Decky installs the files but leaves this panel mounted on the old code, so
+  // ask its loader to import the new build, then close the menu: reopening FSG
+  // mounts the new version even when the loader has no such hook.
+  const loader = (window as any).DeckyPluginLoader;
+  try {
+    await (loader?.importPlugin?.(PLUGIN_NAME, update.latest) ??
+      loader?.loadPlugin?.(PLUGIN_NAME) ??
+      Promise.resolve());
+  } catch (e) {
+    console.error("[FSG] plugin reload failed", e);
+  }
+  toaster.toast({ title: t.toastUpdated, body: t.toastUpdatedBody, logo: <Logo size="100%" /> });
+  Navigation.CloseSideMenus();
 }
 
 /** Rows shown right under the "check for updates" button, so the answer appears where you asked. */
@@ -300,14 +313,6 @@ function Content() {
         </PanelSectionRow>
       </PanelSection>
 
-      <PanelSection title={t.savingsSection}>
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => setShowStats(true)}>
-            {t.statsButton}
-          </ButtonItem>
-        </PanelSectionRow>
-      </PanelSection>
-
       <PanelSection title={t.optionsSection}>
         <PanelSectionRow>
           <ToggleField
@@ -341,6 +346,25 @@ function Content() {
             onChange={(v) => toggle("beta", v)}
           />
         </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t.upcomingSection}>
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={() => openWeb(STEAMDB_FREE_URL)}>
+            {t.openSteamDB}
+          </ButtonItem>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t.statsTitle}>
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={() => setShowStats(true)}>
+            {t.statsButton}
+          </ButtonItem>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t.updatesSection}>
         <PanelSectionRow>
           <ButtonItem layout="below" disabled={checkingUpdate} onClick={onCheckUpdate}>
             {checkingUpdate ? t.searching : t.checkUpdates}
@@ -352,14 +376,6 @@ function Content() {
             {t.version(state.version)}
             {state.settings.beta && ` · ${t.betaTag}`}
           </div>
-        </PanelSectionRow>
-      </PanelSection>
-
-      <PanelSection title={t.upcomingSection}>
-        <PanelSectionRow>
-          <ButtonItem layout="below" onClick={() => openWeb(STEAMDB_FREE_URL)}>
-            {t.openSteamDB}
-          </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
     </>

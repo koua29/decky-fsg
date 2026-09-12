@@ -70,6 +70,9 @@ const en = {
   libraryPricedSplit: (priced: number, free: number) =>
     `${priced} priced · ${free} at 0 (demos, free-to-play, delisted)`,
   statsButton: "See the statistics",
+  updatesSection: "Updates",
+  toastUpdated: "Update installed",
+  toastUpdatedBody: "Open FSG again to load the new version.",
   statsTitle: "Statistics",
   back: "Back",
   libraryHint: "Items include DLC. Nothing is computed until you ask.",
@@ -152,6 +155,9 @@ const fr: typeof en = {
   libraryPricedSplit: (priced, free) =>
     `${priced} chiffrés · ${free} à 0 € (démos, free-to-play, jeux retirés)`,
   statsButton: "Voir les statistiques",
+  updatesSection: "Mises à jour",
+  toastUpdated: "Mise à jour installée",
+  toastUpdatedBody: "Rouvre FSG pour charger la nouvelle version.",
   statsTitle: "Statistiques",
   back: "Retour",
   libraryHint: "Les éléments comptent les DLC. Rien n'est calculé sans ta demande.",
