@@ -81,16 +81,16 @@ Paquet : un dossier `FSG/` contenant `dist/`, `main.py`, `plugin.json`, `package
 <table>
 <tr>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?tag=koua29-21"><img src="assets/amazon-B0CQ3RWQQZ.jpg" width="200" alt="Steam Deck OLED"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?tag=koua29-21">Steam Deck OLED</a></b><br><sub>La console SteamOS de Valve</sub>
+  <a href="https://link.amazon/B08laHn7P"><img src="assets/amazon-B0CQ3RWQQZ.jpg" width="200" alt="Steam Deck OLED"></a><br>
+  <b><a href="https://link.amazon/B08laHn7P">Steam Deck OLED</a></b><br><sub>La console SteamOS de Valve</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0DWFY5G1N?tag=koua29-21"><img src="assets/amazon-B0DWFY5G1N.jpg" width="200" alt="Lenovo Legion Go S"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0DWFY5G1N?tag=koua29-21">Lenovo Legion Go S</a></b><br><sub>Livrée sous SteamOS</sub>
+  <a href="https://link.amazon/B0adFHmEE"><img src="assets/amazon-B0DWFY5G1N.jpg" width="200" alt="Lenovo Legion Go S"></a><br>
+  <b><a href="https://link.amazon/B0adFHmEE">Lenovo Legion Go S</a></b><br><sub>Livrée sous SteamOS</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0FYR394K5?tag=koua29-21"><img src="assets/amazon-B0FYR394K5.jpg" width="200" alt="Lenovo Legion Go 2"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0FYR394K5?tag=koua29-21">Lenovo Legion Go 2</a></b><br><sub>Écran OLED 8,8&quot; · compatible SteamOS</sub>
+  <a href="https://link.amazon/B038GxaGS"><img src="assets/amazon-B0FYR394K5.jpg" width="200" alt="Lenovo Legion Go 2"></a><br>
+  <b><a href="https://link.amazon/B038GxaGS">Lenovo Legion Go 2</a></b><br><sub>Écran OLED 8,8&quot; · compatible SteamOS</sub>
 </td>
 </tr>
 </table>
