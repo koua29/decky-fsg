@@ -81,16 +81,16 @@ Paquet : un dossier `FSG/` contenant `dist/`, `main.py`, `plugin.json`, `package
 <table>
 <tr>
 <td align="center" width="33%">
-  <a href="https://link.amazon/B08laHn7P"><img src="assets/amazon-B0CQ3RWQQZ.jpg" width="200" alt="Steam Deck OLED"></a><br>
-  <b><a href="https://link.amazon/B08laHn7P">Steam Deck OLED</a></b><br><sub>La console SteamOS de Valve</sub>
+  <a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=d8fe32650df59e4b587c0f3faa6e2762&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0CQ3RWQQZ.jpg" width="200" alt="Steam Deck OLED"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=d8fe32650df59e4b587c0f3faa6e2762&amp;ref_=as_li_ss_tl">Steam Deck OLED</a></b><br><sub>La console SteamOS de Valve</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://link.amazon/B0adFHmEE"><img src="assets/amazon-B0DWFY5G1N.jpg" width="200" alt="Lenovo Legion Go S"></a><br>
-  <b><a href="https://link.amazon/B0adFHmEE">Lenovo Legion Go S</a></b><br><sub>Livrée sous SteamOS</sub>
+  <a href="https://www.amazon.fr/dp/B0DWFY5G1N?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=27547fe4ab70827a6cc109b4a539d5a4&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0DWFY5G1N.jpg" width="200" alt="Lenovo Legion Go S"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0DWFY5G1N?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=27547fe4ab70827a6cc109b4a539d5a4&amp;ref_=as_li_ss_tl">Lenovo Legion Go S</a></b><br><sub>Livrée sous SteamOS</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://link.amazon/B038GxaGS"><img src="assets/amazon-B0FYR394K5.jpg" width="200" alt="Lenovo Legion Go 2"></a><br>
-  <b><a href="https://link.amazon/B038GxaGS">Lenovo Legion Go 2</a></b><br><sub>Écran OLED 8,8&quot; · compatible SteamOS</sub>
+  <a href="https://www.amazon.fr/dp/B0FYR394K5?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=094466eff2c7717ecebc49e8bf0f3a85&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0FYR394K5.jpg" width="200" alt="Lenovo Legion Go 2"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0FYR394K5?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=094466eff2c7717ecebc49e8bf0f3a85&amp;ref_=as_li_ss_tl">Lenovo Legion Go 2</a></b><br><sub>Écran OLED 8,8&quot; · compatible SteamOS</sub>
 </td>
 </tr>
 </table>
