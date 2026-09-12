@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from "react";
 
 import logo from "../assets/fsg-logo.png";
+import { claimMessage, lang, locale, t } from "./i18n";
 
 interface Game {
   appid: number;
@@ -32,6 +33,7 @@ interface Settings {
   auto_claim: boolean;
   include_dlc: boolean;
   notify: boolean;
+  language: string;
 }
 
 interface Update {
@@ -59,13 +61,16 @@ interface State {
 
 interface ClaimResult {
   ok: boolean;
-  message: string;
+  code: string;
+  detail: string;
 }
+
+type ToggleKey = "auto_claim" | "include_dlc" | "notify";
 
 const getState = callable<[], State>("get_state");
 const refresh = callable<[], State>("refresh");
 const claim = callable<[appid: number], ClaimResult>("claim");
-const setSetting = callable<[key: keyof Settings, value: boolean], Settings>("set_setting");
+const setSetting = callable<[key: string, value: boolean | string], Settings>("set_setting");
 const checkUpdate = callable<[], Update | null>("check_update");
 
 const STEAMDB_FREE_URL = "https://steamdb.info/upcoming/free/";
@@ -109,7 +114,7 @@ async function installUpdate(update: Update) {
 }
 
 function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleString("fr-FR", {
+  return new Date(ts * 1000).toLocaleString(locale, {
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -131,21 +136,21 @@ function UpdateBanner({ update }: { update: Update }) {
   };
 
   return (
-    <PanelSection title="Mise à jour disponible">
+    <PanelSection title={t.updateSection}>
       <PanelSectionRow>
         <div style={muted}>
-          Version {update.latest} disponible (installée : {update.current}).
+          {t.updateLine(update.latest, update.current)}
           {update.title && <div style={{ fontWeight: "bold" }}>{update.title}</div>}
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem layout="below" disabled={installing} onClick={onInstall}>
-          {installing ? "Installation…" : `Mettre à jour vers ${update.latest}`}
+          {installing ? t.installing : t.updateTo(update.latest)}
         </ButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem layout="below" onClick={() => openWeb(update.url)}>
-          Voir les nouveautés
+          {t.seeChanges}
         </ButtonItem>
       </PanelSectionRow>
     </PanelSection>
@@ -161,10 +166,10 @@ function GameCard({
   claiming: boolean;
   onClaim: (game: Game) => void;
 }) {
-  let label = "Ajouter à ma bibliothèque";
-  if (game.owned) label = "✓ Déjà dans ta bibliothèque";
-  else if (claiming) label = "Ajout en cours…";
-  else if (!game.subid) label = "Ajouter depuis le Store";
+  let label = t.addToLibrary;
+  if (game.owned) label = t.alreadyOwned;
+  else if (claiming) label = t.adding;
+  else if (!game.subid) label = t.addFromStore;
 
   return (
     <>
@@ -178,8 +183,8 @@ function GameCard({
                 {game.original_price}
               </span>
             )}
-            <span style={{ color: "#a4d007" }}>Gratuit</span>
-            {game.type !== "game" && " · DLC"}
+            <span style={{ color: "#a4d007" }}>{t.free}</span>
+            {game.type !== "game" && ` · ${t.dlc}`}
           </div>
           {game.ends && <div style={muted}>{game.ends}</div>}
         </div>
@@ -195,7 +200,7 @@ function GameCard({
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem layout="below" onClick={() => openStore(game.appid)}>
-          Voir la fiche Steam
+          {t.seeOnSteam}
         </ButtonItem>
       </PanelSectionRow>
     </>
@@ -218,8 +223,13 @@ function Content() {
   };
 
   useEffect(() => {
-    getState().then((s) => {
+    getState().then(async (s) => {
       setState(s);
+      // The backend asks Steam for game names and prices in this language too.
+      if (s.settings.language !== lang) {
+        const settings = await setSetting("language", lang);
+        setState((prev) => (prev ? { ...prev, settings } : prev));
+      }
       if (!s.last_check) doRefresh();
     });
     const listener = addEventListener<[State]>("fsg_state", setState);
@@ -233,8 +243,8 @@ function Content() {
     try {
       const result = await claim(game.appid);
       toaster.toast({
-        title: result.ok ? "🎁 Ajouté à ta bibliothèque" : "Ajout impossible",
-        body: result.ok ? game.name : result.message,
+        title: result.ok ? t.toastAdded : t.toastAddFailed,
+        body: result.ok ? game.name : claimMessage(result.code, result.detail),
         logo: <Logo size="100%" />,
       });
       setState(await getState());
@@ -249,16 +259,16 @@ function Content() {
       const update = await checkUpdate();
       if (update) setState((s) => (s ? { ...s, update } : s));
       if (!update) {
-        toaster.toast({ title: "Vérification impossible", body: "GitHub injoignable, réessaie plus tard." });
+        toaster.toast({ title: t.toastCheckFailed, body: t.toastCheckFailedBody });
       } else if (!update.available) {
-        toaster.toast({ title: "FSG est à jour", body: `Version ${update.current}`, logo: <Logo size="100%" /> });
+        toaster.toast({ title: t.toastUpToDate, body: t.version(update.current), logo: <Logo size="100%" /> });
       }
     } finally {
       setCheckingUpdate(false);
     }
   };
 
-  const toggle = async (key: keyof Settings, value: boolean) => {
+  const toggle = async (key: ToggleKey, value: boolean) => {
     const settings = await setSetting(key, value);
     setState((s) => (s ? { ...s, settings } : s));
   };
@@ -267,7 +277,7 @@ function Content() {
     return (
       <PanelSection>
         <PanelSectionRow>
-          <div style={muted}>Chargement…</div>
+          <div style={muted}>{t.loading}</div>
         </PanelSectionRow>
       </PanelSection>
     );
@@ -287,22 +297,20 @@ function Content() {
 
       {state.update?.available && <UpdateBanner update={state.update} />}
 
-      <PanelSection title="Gratuits à garder">
+      <PanelSection title={t.freeSection}>
         {state.logged_in === false && (
           <PanelSectionRow>
-            <div style={{ ...muted, color: "#ffb04a", opacity: 1 }}>
-              Session Steam introuvable : ouvre le Store une fois, puis actualise.
-            </div>
+            <div style={{ ...muted, color: "#ffb04a", opacity: 1 }}>{t.noSession}</div>
           </PanelSectionRow>
         )}
         {state.error && (
           <PanelSectionRow>
-            <div style={{ ...muted, color: "#ff6b6b", opacity: 1 }}>{state.error}</div>
+            <div style={{ ...muted, color: "#ff6b6b", opacity: 1 }}>{t.checkFailed(state.error)}</div>
           </PanelSectionRow>
         )}
         {state.games.length === 0 && !checking && (
           <PanelSectionRow>
-            <div style={muted}>Aucun jeu remisé à 100 % sur Steam en ce moment.</div>
+            <div style={muted}>{t.noGames}</div>
           </PanelSectionRow>
         )}
         {state.games.map((game) => (
@@ -315,53 +323,53 @@ function Content() {
         ))}
         <PanelSectionRow>
           <ButtonItem layout="below" disabled={checking} onClick={doRefresh}>
-            {checking ? "Vérification…" : "Actualiser"}
+            {checking ? t.checking : t.refresh}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
           <div style={muted}>
-            Dernière vérification : {state.last_check ? formatDate(state.last_check) : "jamais"}
+            {t.lastCheck(state.last_check ? formatDate(state.last_check) : t.never)}
           </div>
         </PanelSectionRow>
       </PanelSection>
 
-      <PanelSection title="Options">
+      <PanelSection title={t.optionsSection}>
         <PanelSectionRow>
           <ToggleField
-            label="Ajout automatique"
-            description="Ajoute tout seul chaque nouveau jeu remisé à 100 % (vérification toutes les heures)."
+            label={t.autoClaim}
+            description={t.autoClaimHelp}
             checked={state.settings.auto_claim}
             onChange={(v) => toggle("auto_claim", v)}
           />
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
-            label="Inclure les DLC"
-            description="Affiche aussi les DLC et bandes-son offerts."
+            label={t.includeDlc}
+            description={t.includeDlcHelp}
             checked={state.settings.include_dlc}
             onChange={(v) => toggle("include_dlc", v)}
           />
         </PanelSectionRow>
         <PanelSectionRow>
           <ToggleField
-            label="Notifications"
-            description="Prévient quand un jeu est détecté ou ajouté, ou qu'une mise à jour sort."
+            label={t.notifications}
+            description={t.notificationsHelp}
             checked={state.settings.notify}
             onChange={(v) => toggle("notify", v)}
           />
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" disabled={checkingUpdate} onClick={onCheckUpdate}>
-            {checkingUpdate ? "Recherche…" : "Vérifier les mises à jour"}
+            {checkingUpdate ? t.searching : t.checkUpdates}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
-          <div style={muted}>Version {state.version}</div>
+          <div style={muted}>{t.version(state.version)}</div>
         </PanelSectionRow>
       </PanelSection>
 
       {state.claimed.length > 0 && (
-        <PanelSection title="Récemment ajoutés">
+        <PanelSection title={t.historySection}>
           {state.claimed.map((c) => (
             <PanelSectionRow key={`${c.appid}-${c.ts}`}>
               <div style={muted}>
@@ -372,10 +380,10 @@ function Content() {
         </PanelSection>
       )}
 
-      <PanelSection title="Promos à venir">
+      <PanelSection title={t.upcomingSection}>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => openWeb(STEAMDB_FREE_URL)}>
-            Ouvrir SteamDB
+            {t.openSteamDB}
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
@@ -388,7 +396,7 @@ export default definePlugin(() => {
     "fsg_claimed",
     (name, appid) =>
       toaster.toast({
-        title: "🎁 Ajouté à ta bibliothèque",
+        title: t.toastAdded,
         body: name,
         logo: <Logo size="100%" />,
         onClick: () => openStore(appid),
@@ -398,7 +406,7 @@ export default definePlugin(() => {
     "fsg_new",
     (name, appid) =>
       toaster.toast({
-        title: "Jeu gratuit sur Steam",
+        title: t.toastFreeGame,
         body: name,
         logo: <Logo size="100%" />,
         onClick: () => openStore(appid),
@@ -408,8 +416,8 @@ export default definePlugin(() => {
     "fsg_update",
     (version, title) =>
       toaster.toast({
-        title: `Mise à jour FSG ${version} disponible`,
-        body: title || "Ouvre FSG dans le menu Decky pour l'installer.",
+        title: t.toastUpdate(version),
+        body: title || t.toastUpdateBody,
         logo: <Logo size="100%" />,
       }),
   );

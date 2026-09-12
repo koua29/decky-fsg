@@ -35,12 +35,24 @@ CHECK_INTERVAL = 3600    # seconds between two automatic checks
 MAX_ATTEMPTS = 3         # automatic claim attempts per package before giving up
 MAX_CANDIDATES = 30
 
-DEFAULT_SETTINGS = {"auto_claim": True, "include_dlc": False, "notify": True}
+DEFAULT_SETTINGS = {"auto_claim": True, "include_dlc": False, "notify": True, "language": "en"}
+STEAM_LANG = {"en": "english", "fr": "french"}  # store pages and prices follow the interface
+_lang = "en"
 SETTINGS_FILE = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "settings.json")
 MEMORY_FILE = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "memory.json")
 
 
 # --------------------------------------------------------------------------- storage
+
+def _set_lang(code):
+    """Interface language, chosen by the frontend from Steam's own locale."""
+    global _lang
+    _lang = code if code in STEAM_LANG else "en"
+
+
+def _l():
+    return STEAM_LANG[_lang]
+
 
 def _load(path, default):
     try:
@@ -219,7 +231,7 @@ _COUNTDOWN = re.compile(r'class="game_purchase_discount_countdown">([^<]+)<')
 
 def _search_candidates(query=None):
     """App ids the store lists at 0 € with a discount, i.e. free to keep."""
-    url = f"{STORE}/search/results/?query&start=0&count=100&{query or SEARCH_QUERY}&infinite=1&l=french"
+    url = f"{STORE}/search/results/?query&start=0&count=100&{query or SEARCH_QUERY}&infinite=1&l={_l()}"
     rows = json.loads(_http(url)).get("results_html", "")
     appids = []
     for appid in map(int, re.findall(r'data-ds-appid="(\d+)"', rows)):
@@ -230,7 +242,7 @@ def _search_candidates(query=None):
 
 def _app_page_info(appid):
     """Free-licence package ids offered on the store page, and the offer's end text."""
-    page = _http(f"{STORE}/app/{appid}/?l=french", cookies=AGE_COOKIES)
+    page = _http(f"{STORE}/app/{appid}/?l={_l()}", cookies=AGE_COOKIES)
     subids = []
     for form in _FREE_FORM.finditer(page):
         m = _SUBID.search(form.group(1))
@@ -242,7 +254,7 @@ def _app_page_info(appid):
 
 
 def _build_game(appid):
-    raw = json.loads(_http(f"{STORE}/api/appdetails?appids={appid}&l=french")).get(str(appid)) or {}
+    raw = json.loads(_http(f"{STORE}/api/appdetails?appids={appid}&l={_l()}")).get(str(appid)) or {}
     if not raw.get("success"):
         return None
     data = raw["data"]
@@ -296,14 +308,14 @@ def _claim_license(session, game):
                       data={"ajax": "true", "sessionid": session["sessionid"]}, cookies=session)
         decky.logger.info("addfreelicense %s -> %s", game["subid"], reply[:200])
     except urllib.error.HTTPError as e:
-        return False, f"Steam a refusé la demande (HTTP {e.code})."
+        return False, "http_error", str(e.code)
     # The reply format is undocumented: trust the account's licence list instead.
     for delay in (1, 3, 5):
         time.sleep(delay)
         apps, packages = _owned(session)
         if game["appid"] in apps or game["subid"] in packages:
-            return True, "Ajouté à ta bibliothèque."
-    return False, "Steam n'a pas confirmé l'ajout."
+            return True, "added", ""
+    return False, "not_confirmed", ""
 
 
 # --------------------------------------------------------------------------- updates
@@ -354,6 +366,7 @@ class Plugin:
     async def _main(self):
         self.lock = asyncio.Lock()
         self.settings = {**DEFAULT_SETTINGS, **_load(SETTINGS_FILE, {})}
+        _set_lang(self.settings["language"])
         self.memory = {"seen": [], "attempts": {}, "claimed": [], **_load(MEMORY_FILE, {})}
         self.task = asyncio.get_event_loop().create_task(self._loop())
         decky.logger.info("FSG started")
@@ -375,13 +388,19 @@ class Plugin:
         async with self._get_lock():
             game = next((g for g in self.games if g["appid"] == appid), None)
             if game is None:
-                return {"ok": False, "message": "Jeu introuvable, actualise la liste."}
-            ok, message = await self._claim(game)
+                return {"ok": False, "code": "not_found", "detail": ""}
+            ok, code, detail = await self._claim(game)
             _save(MEMORY_FILE, self.memory)
-        return {"ok": ok, "message": message}
+        return {"ok": ok, "code": code, "detail": detail}
 
     async def set_setting(self, key, value):
-        if key in DEFAULT_SETTINGS:
+        if key == "language":
+            _set_lang(str(value))
+            self.settings["language"] = _lang
+            _save(SETTINGS_FILE, self.settings)
+            # Names and prices come from the store in that language: fetch them again.
+            asyncio.get_event_loop().create_task(self._check())
+        elif key in DEFAULT_SETTINGS:
             self.settings[key] = bool(value)
             _save(SETTINGS_FILE, self.settings)
             if key == "include_dlc" or (key == "auto_claim" and value):
@@ -452,7 +471,7 @@ class Plugin:
                 await self._handle_games(session)
             except Exception as e:
                 decky.logger.exception("Check failed")
-                self.error = f"Vérification impossible : {e}"
+                self.error = str(e)
             finally:
                 self.checking = False
                 self.last_check = int(time.time())
@@ -469,7 +488,7 @@ class Plugin:
                 continue
             attempts = self.memory["attempts"].get(str(game["subid"]), 0)
             if self.settings["auto_claim"] and session and game["subid"] and attempts < MAX_ATTEMPTS:
-                ok, _ = await self._claim(game, session=session, announce=True)
+                ok, _, _ = await self._claim(game, session=session, announce=True)
                 if ok:
                     continue
             if is_new and self.settings["notify"]:
@@ -481,13 +500,13 @@ class Plugin:
     async def _claim(self, game, session=None, announce=False):
         session = session or await asyncio.to_thread(_session)
         if not session:
-            return False, "Session Steam introuvable : ouvre le Store une fois puis réessaie."
+            return False, "no_session", ""
         if not game.get("subid"):
-            return False, "Aucune licence gratuite trouvée : passe par la fiche Store."
+            return False, "no_subid", ""
         try:
-            ok, message = await asyncio.to_thread(_claim_license, session, game)
+            ok, code, detail = await asyncio.to_thread(_claim_license, session, game)
         except (OSError, ValueError) as e:
-            ok, message = False, f"Erreur réseau : {e}"
+            ok, code, detail = False, "network_error", str(e)
         key = str(game["subid"])
         if ok:
             game["owned"] = True
@@ -498,5 +517,5 @@ class Plugin:
                 await decky.emit("fsg_claimed", game["name"], game["appid"])
         else:
             self.memory["attempts"][key] = self.memory["attempts"].get(key, 0) + 1
-        decky.logger.info("Claim %s (sub %s): %s - %s", game["name"], game["subid"], ok, message)
-        return ok, message
+        decky.logger.info("Claim %s (sub %s): %s - %s %s", game["name"], game["subid"], ok, code, detail)
+        return ok, code, detail

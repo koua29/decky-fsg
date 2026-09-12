@@ -5,7 +5,7 @@
   "api_version": 1,
   "publish": {
     "tags": ["steam", "free-games", "store"],
-    "description": "Liste les jeux Steam gratuits à garder (remise de 100 %) et les ajoute à ta bibliothèque, automatiquement si tu veux.",
+    "description": "Lists the Steam games that are 100% off (free to keep) and adds them to your library, automatically if you want.",
     "image": ""
   }
 }
