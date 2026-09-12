@@ -1,6 +1,5 @@
 import {
   ButtonItem,
-  Focusable,
   Navigation,
   PanelSection,
   PanelSectionRow,
@@ -17,7 +16,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import logo from "../assets/fsg-logo.png";
-import { scrollIntoView } from "./focus";
+import { FocusRow } from "./focus";
 import { claimMessage, lang, t } from "./i18n";
 import { StatsPanel, formatDate } from "./stats";
 import type { Game, Settings, State, Update } from "./types";
@@ -147,10 +146,10 @@ function GameCard({
   return (
     <>
       <PanelSectionRow>
-        <Focusable
+        <FocusRow
+          block="center"
           style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}
           onActivate={() => openStore(game.appid)}
-          onFocus={scrollIntoView("center")}
         >
           {game.image && <img src={game.image} style={{ width: "100%", borderRadius: "4px" }} />}
           <div style={{ fontWeight: "bold" }}>{game.name}</div>
@@ -164,7 +163,7 @@ function GameCard({
             {game.type !== "game" && ` · ${t.dlc}`}
           </div>
           {game.ends && <div style={muted}>{game.ends}</div>}
-        </Focusable>
+        </FocusRow>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem
@@ -296,14 +295,9 @@ function Content() {
     <>
       <PanelSection>
         <PanelSectionRow>
-          <Focusable
-            ref={topRow}
-            style={{ display: "flex", justifyContent: "center" }}
-            onActivate={() => {}}
-            onFocus={scrollIntoView("start")}
-          >
+          <FocusRow elementRef={topRow} block="start" style={{ display: "flex", justifyContent: "center" }}>
             <Logo size="96px" />
-          </Focusable>
+          </FocusRow>
         </PanelSectionRow>
       </PanelSection>
 

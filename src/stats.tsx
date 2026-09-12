@@ -2,7 +2,7 @@ import { ButtonItem, Focusable, PanelSection, PanelSectionRow } from "@decky/ui"
 import { callable } from "@decky/api";
 import { useState } from "react";
 
-import { scrollIntoView } from "./focus";
+import { FocusRow } from "./focus";
 import { locale, t } from "./i18n";
 import type { State } from "./types";
 
@@ -60,23 +60,23 @@ export function StatsPanel({
     <Focusable onCancel={onBack} flow-children="vertical">
       <PanelSection title={t.statsTitle}>
         <PanelSectionRow>
-          <Focusable onActivate={() => {}} onFocus={scrollIntoView("start")}>
+          <FocusRow block="start">
             <div style={label}>{t.savingsSection}</div>
             <div style={{ ...big, color: "#a4d007" }}>
               {totals.cents > 0 ? money(totals.cents, totals.currency) : "—"}
             </div>
             <div style={muted}>{t.savingsCount(totals.count)}</div>
-          </Focusable>
+          </FocusRow>
         </PanelSectionRow>
         <PanelSectionRow>
-          <Focusable onActivate={() => {}} onFocus={scrollIntoView("center")}>
+          <FocusRow block="center">
             <div style={label}>{t.libraryTitle}</div>
             <div style={big}>{library.ts ? money(library.cents, library.currency) || "—" : "—"}</div>
             <div style={muted}>
               {library.ts ? t.libraryCount(library.count) : t.libraryNever}
               {library.ts > 0 && <div>{t.libraryPricedSplit(library.priced, free)}</div>}
             </div>
-          </Focusable>
+          </FocusRow>
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" disabled={busy} onClick={onRecompute}>
@@ -96,7 +96,7 @@ export function StatsPanel({
         )}
         {claimed.map((c) => (
           <PanelSectionRow key={`${c.appid}-${c.ts}`}>
-            <Focusable style={{ width: "100%" }} onActivate={() => {}} onFocus={scrollIntoView("center")}>
+            <FocusRow block="center" style={{ width: "100%" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {c.name}
@@ -106,7 +106,7 @@ export function StatsPanel({
                 </span>
               </div>
               <div style={muted}>{formatDate(c.ts)}</div>
-            </Focusable>
+            </FocusRow>
           </PanelSectionRow>
         ))}
       </PanelSection>
