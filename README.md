@@ -4,6 +4,14 @@
 
 Plugin **[Decky Loader](https://decky.xyz/)** pour **SteamOS** (Steam Deck, Lenovo Legion Go S / Go 2…). Il liste les jeux Steam **gratuits à garder** (remise temporaire de 100 %) dans le menu d'accès rapide, et les ajoute à ta bibliothèque en un clic, ou tout seul.
 
+## 📸 Aperçu
+
+<p align="center"><img src="docs/screenshot-device.jpg" alt="Le panneau FSG dans le menu d'accès rapide, sur une Lenovo Legion Go 2 sous SteamOS" width="80%"></p>
+
+<p align="center"><img src="docs/screenshot-options.jpg" alt="Les options de FSG : ajout automatique, DLC gratuits, notifications, vérification des mises à jour" width="40%"></p>
+
+<p align="center"><em>FSG en fonctionnement sur une Lenovo Legion Go 2 (SteamOS).</em></p>
+
 ## ✨ Fonctions
 
 - Liste des promos gratuites en cours, lues directement sur le store Steam : prix normal, date de fin quand Steam l'affiche.
