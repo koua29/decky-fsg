@@ -50,11 +50,15 @@ const en = {
   includeDlcHelp: "Also shows free DLC and soundtracks.",
   notifications: "Notifications",
   notificationsHelp: "Tells you when a game is found or added, or when an update is out.",
+  beta: "Beta versions",
+  betaHelp: "Also offers test builds. They come earlier, and can be unstable.",
   checkUpdates: "Check for updates",
   searching: "Checking…",
   version: (version: string) => `Version ${version}`,
 
   historySection: "Recently added",
+  betaTag: "beta",
+  rollbackTo: (version: string) => `Back to stable ${version}`,
   upcomingSection: "Upcoming promos",
   openSteamDB: "Open SteamDB",
 
@@ -110,11 +114,15 @@ const fr: typeof en = {
   includeDlcHelp: "Affiche aussi les DLC et bandes-son offerts.",
   notifications: "Notifications",
   notificationsHelp: "Prévient quand un jeu est détecté ou ajouté, ou qu'une mise à jour sort.",
+  beta: "Versions bêta",
+  betaHelp: "Propose aussi les versions de test. Elles arrivent plus tôt, et peuvent être instables.",
   checkUpdates: "Vérifier les mises à jour",
   searching: "Recherche…",
   version: (version) => `Version ${version}`,
 
   historySection: "Récemment ajoutés",
+  betaTag: "bêta",
+  rollbackTo: (version) => `Revenir à la version stable ${version}`,
   upcomingSection: "Promos à venir",
   openSteamDB: "Ouvrir SteamDB",
 

@@ -34,12 +34,16 @@ interface Settings {
   include_dlc: boolean;
   notify: boolean;
   language: string;
+  beta: boolean;
 }
 
 interface Update {
   current: string;
   latest: string;
   available: boolean;
+  rollback: boolean;
+  prerelease: boolean;
+  channel: string;
   title: string;
   notes: string;
   url: string;
@@ -65,7 +69,7 @@ interface ClaimResult {
   detail: string;
 }
 
-type ToggleKey = "auto_claim" | "include_dlc" | "notify";
+type ToggleKey = "auto_claim" | "include_dlc" | "notify" | "beta";
 
 const getState = callable<[], State>("get_state");
 const refresh = callable<[], State>("refresh");
@@ -140,12 +144,17 @@ function UpdateBanner({ update }: { update: Update }) {
       <PanelSectionRow>
         <div style={muted}>
           {t.updateLine(update.latest, update.current)}
+          {update.prerelease && ` [${t.betaTag}]`}
           {update.title && <div style={{ fontWeight: "bold" }}>{update.title}</div>}
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem layout="below" disabled={installing} onClick={onInstall}>
-          {installing ? t.installing : t.updateTo(update.latest)}
+          {installing
+            ? t.installing
+            : update.available
+              ? t.updateTo(update.latest)
+              : t.rollbackTo(update.latest)}
         </ButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
@@ -295,7 +304,7 @@ function Content() {
         </PanelSectionRow>
       </PanelSection>
 
-      {state.update?.available && <UpdateBanner update={state.update} />}
+      {(state.update?.available || state.update?.rollback) && <UpdateBanner update={state.update} />}
 
       <PanelSection title={t.freeSection}>
         {state.logged_in === false && (
@@ -359,12 +368,23 @@ function Content() {
           />
         </PanelSectionRow>
         <PanelSectionRow>
+          <ToggleField
+            label={t.beta}
+            description={t.betaHelp}
+            checked={state.settings.beta}
+            onChange={(v) => toggle("beta", v)}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
           <ButtonItem layout="below" disabled={checkingUpdate} onClick={onCheckUpdate}>
             {checkingUpdate ? t.searching : t.checkUpdates}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
-          <div style={muted}>{t.version(state.version)}</div>
+          <div style={muted}>
+            {t.version(state.version)}
+            {state.settings.beta && ` · ${t.betaTag}`}
+          </div>
         </PanelSectionRow>
       </PanelSection>
 

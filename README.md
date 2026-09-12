@@ -58,6 +58,12 @@ Depuis la 0.1.0, qui n'a pas cette vérification, il faut réinstaller une fois 
 
 Chaque version est publiée dans les [Releases](https://github.com/koua29/decky-fsg/releases) avec un tag `vX.Y.Z` et la liste des nouveautés.
 
+### Versions bêta
+
+Options → **Versions bêta** fait aussi regarder les versions de test (tags `vX.Y.Z-beta.N`, publiées en *pre-release* sur GitHub). Elles arrivent plus tôt et peuvent être instables ; sans cette option, FSG ne propose que les versions stables.
+
+En repassant l'option sur off alors qu'une bêta est installée, le panneau propose de **revenir à la dernière version stable**.
+
 ## 🛠️ Développement
 
 ```bash

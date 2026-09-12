@@ -35,7 +35,7 @@ CHECK_INTERVAL = 3600    # seconds between two automatic checks
 MAX_ATTEMPTS = 3         # automatic claim attempts per package before giving up
 MAX_CANDIDATES = 30
 
-DEFAULT_SETTINGS = {"auto_claim": True, "include_dlc": False, "notify": True, "language": "en"}
+DEFAULT_SETTINGS = {"auto_claim": True, "include_dlc": False, "notify": True, "language": "en", "beta": False}
 STEAM_LANG = {"en": "english", "fr": "french"}  # store pages and prices follow the interface
 _lang = "en"
 SETTINGS_FILE = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "settings.json")
@@ -326,20 +326,36 @@ UPDATE_INTERVAL = 86400  # one GitHub check per day
 CURRENT_VERSION = getattr(decky, "DECKY_PLUGIN_VERSION", "0.0.0")
 
 
-def _version_tuple(version):
-    return tuple(int(n) for n in re.findall(r"\d+", version)[:3])
+_PRERELEASE = re.compile(r"-(?:beta|rc|alpha)\.?(\d+)?", re.I)
 
 
-def _latest_release(current):
-    """Latest GitHub release of the plugin, compared with the installed version."""
-    release = json.loads(_http(f"https://api.github.com/repos/{REPO}/releases/latest"))
+def _version_key(version):
+    """Sortable version: 0.4.0-beta.2 sits after 0.3.9 but before 0.4.0."""
+    numbers = tuple(int(n) for n in re.findall(r"\d+", version.split("-", 1)[0])[:3])
+    numbers += (0,) * (3 - len(numbers))
+    pre = _PRERELEASE.search(version)
+    return numbers + ((0, int(pre.group(1) or 0)) if pre else (1, 0))
+
+
+def _latest_release(current, beta=False):
+    """Newest release of the chosen channel, compared with the installed version."""
+    if beta:
+        releases = [r for r in json.loads(_http(f"https://api.github.com/repos/{REPO}/releases?per_page=20"))
+                    if not r.get("draft")]
+        release = max(releases, key=lambda r: _version_key(r.get("tag_name", "")), default={})
+    else:
+        release = json.loads(_http(f"https://api.github.com/repos/{REPO}/releases/latest"))
     asset = next((a for a in release.get("assets", []) if a.get("name") == ZIP_NAME), {})
     latest = release.get("tag_name", "").lstrip("v")
     digest = asset.get("digest") or ""
     return {
         "current": current,
         "latest": latest,
-        "available": bool(asset) and _version_tuple(latest) > _version_tuple(current),
+        "available": bool(asset) and _version_key(latest) > _version_key(current),
+        # Leaving the beta channel while running a beta build: offer the stable one back.
+        "rollback": bool(asset) and not beta and _version_key(latest) < _version_key(current),
+        "prerelease": bool(release.get("prerelease")),
+        "channel": "beta" if beta else "stable",
         "title": release.get("name", ""),
         "notes": (release.get("body") or "")[:800],
         "url": release.get("html_url", ""),
@@ -400,6 +416,10 @@ class Plugin:
             _save(SETTINGS_FILE, self.settings)
             # Names and prices come from the store in that language: fetch them again.
             asyncio.get_event_loop().create_task(self._check())
+        elif key == "beta":
+            self.settings["beta"] = bool(value)
+            _save(SETTINGS_FILE, self.settings)
+            asyncio.get_event_loop().create_task(self._check_update())
         elif key in DEFAULT_SETTINGS:
             self.settings[key] = bool(value)
             _save(SETTINGS_FILE, self.settings)
@@ -449,7 +469,7 @@ class Plugin:
     async def _check_update(self):
         self.last_update_check = time.time()
         try:
-            self.update = await asyncio.to_thread(_latest_release, CURRENT_VERSION)
+            self.update = await asyncio.to_thread(_latest_release, CURRENT_VERSION, self.settings["beta"])
         except (OSError, ValueError) as e:
             decky.logger.warning("Update check failed: %s", e)
             return False
