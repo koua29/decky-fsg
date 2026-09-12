@@ -2,6 +2,7 @@ import { ButtonItem, Focusable, PanelSection, PanelSectionRow } from "@decky/ui"
 import { callable } from "@decky/api";
 import { useState } from "react";
 
+import { scrollIntoView } from "./focus";
 import { locale, t } from "./i18n";
 import type { State } from "./types";
 
@@ -58,7 +59,7 @@ export function StatsPanel({
     <>
       <PanelSection title={t.statsTitle}>
         <PanelSectionRow>
-          <Focusable onActivate={() => {}}>
+          <Focusable onActivate={() => {}} onFocus={scrollIntoView("start")}>
             <div style={label}>{t.savingsSection}</div>
             <div style={{ ...big, color: "#a4d007" }}>
               {totals.cents > 0 ? money(totals.cents, totals.currency) : "—"}
@@ -67,7 +68,7 @@ export function StatsPanel({
           </Focusable>
         </PanelSectionRow>
         <PanelSectionRow>
-          <Focusable onActivate={() => {}}>
+          <Focusable onActivate={() => {}} onFocus={scrollIntoView("center")}>
             <div style={label}>{t.libraryTitle}</div>
             <div style={big}>{library.ts ? money(library.cents, library.currency) || "—" : "—"}</div>
             <div style={muted}>
@@ -94,7 +95,7 @@ export function StatsPanel({
         )}
         {claimed.map((c) => (
           <PanelSectionRow key={`${c.appid}-${c.ts}`}>
-            <Focusable style={{ width: "100%" }} onActivate={() => {}}>
+            <Focusable style={{ width: "100%" }} onActivate={() => {}} onFocus={scrollIntoView("center")}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {c.name}

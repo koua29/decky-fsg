@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 
 import logo from "../assets/fsg-logo.png";
+import { scrollIntoView } from "./focus";
 import { claimMessage, lang, t } from "./i18n";
 import { StatsPanel, formatDate } from "./stats";
 import type { Game, Settings, State, Update } from "./types";
@@ -40,6 +41,7 @@ const PLUGIN_NAME = "FSG";
 const INSTALL_TYPE_UPDATE = 2; // InstallType.UPDATE in Decky Loader
 
 const muted = { fontSize: "12px", lineHeight: "16px", opacity: 0.7 };
+
 
 function Logo({ size }: { size: string }) {
   return <img src={logo} style={{ width: size, height: size, borderRadius: "50%" }} />;
@@ -148,6 +150,7 @@ function GameCard({
         <Focusable
           style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}
           onActivate={() => openStore(game.appid)}
+          onFocus={scrollIntoView("center")}
         >
           {game.image && <img src={game.image} style={{ width: "100%", borderRadius: "4px" }} />}
           <div style={{ fontWeight: "bold" }}>{game.name}</div>
@@ -275,7 +278,11 @@ function Content() {
     <>
       <PanelSection>
         <PanelSectionRow>
-          <Focusable style={{ display: "flex", justifyContent: "center" }} onActivate={() => {}}>
+          <Focusable
+            style={{ display: "flex", justifyContent: "center" }}
+            onActivate={() => {}}
+            onFocus={scrollIntoView("start")}
+          >
             <Logo size="96px" />
           </Focusable>
         </PanelSectionRow>
