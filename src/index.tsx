@@ -14,7 +14,7 @@ import {
   removeEventListener,
   toaster,
 } from "@decky/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import logo from "../assets/fsg-logo.png";
 import { scrollIntoView } from "./focus";
@@ -190,6 +190,8 @@ function Content() {
   const [claiming, setClaiming] = useState<number | null>(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const topRow = useRef<HTMLDivElement>(null);
+  const returning = useRef(false);
 
   const doRefresh = async () => {
     setBusy(true);
@@ -215,6 +217,13 @@ function Content() {
       removeEventListener("fsg_state", listener);
     };
   }, []);
+
+  useEffect(() => {
+    if (showStats || !returning.current) return;
+    returning.current = false;
+    const id = setTimeout(() => topRow.current?.focus(), 60);
+    return () => clearTimeout(id);
+  }, [showStats]);
 
   const onClaim = async (game: Game) => {
     setClaiming(game.appid);
@@ -268,7 +277,16 @@ function Content() {
   }
 
   if (showStats) {
-    return <StatsPanel state={state} setState={setState} onBack={() => setShowStats(false)} />;
+    return (
+      <StatsPanel
+        state={state}
+        setState={setState}
+        onBack={() => {
+          returning.current = true;
+          setShowStats(false);
+        }}
+      />
+    );
   }
 
   const checking = busy || state.checking;
@@ -279,6 +297,7 @@ function Content() {
       <PanelSection>
         <PanelSectionRow>
           <Focusable
+            ref={topRow}
             style={{ display: "flex", justifyContent: "center" }}
             onActivate={() => {}}
             onFocus={scrollIntoView("start")}

@@ -55,8 +55,9 @@ export function StatsPanel({
     }
   };
 
+  // B (cancel) comes back to the plugin instead of closing it.
   return (
-    <>
+    <Focusable onCancel={onBack} flow-children="vertical">
       <PanelSection title={t.statsTitle}>
         <PanelSectionRow>
           <Focusable onActivate={() => {}} onFocus={scrollIntoView("start")}>
@@ -117,6 +118,6 @@ export function StatsPanel({
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-    </>
+    </Focusable>
   );
 }
