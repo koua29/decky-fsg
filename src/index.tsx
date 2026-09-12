@@ -60,6 +60,7 @@ interface State {
   settings: Settings;
   claimed: { appid: number; name: string; ts: number; price_cents?: number; currency?: string }[];
   totals: { count: number; cents: number; currency: string };
+  library: { count: number; cents: number; currency: string; priced: number; ts: number };
   version: string;
   update: Update | null;
 }
@@ -408,6 +409,20 @@ function Content() {
                 : t.savingsCount(state.totals.count)}
           </div>
         </PanelSectionRow>
+        <PanelSectionRow>
+          <div style={muted}>
+            {state.library.ts === 0
+              ? t.libraryPending
+              : state.library.cents > 0
+                ? t.libraryLine(state.library.count, money(state.library.cents, state.library.currency))
+                : t.libraryCount(state.library.count)}
+          </div>
+        </PanelSectionRow>
+        {state.library.priced > 0 && (
+          <PanelSectionRow>
+            <div style={{ ...muted, opacity: 0.5 }}>{t.libraryHint}</div>
+          </PanelSectionRow>
+        )}
         {state.claimed.map((c) => (
           <PanelSectionRow key={`${c.appid}-${c.ts}`}>
             <div style={{ ...muted, display: "flex", justifyContent: "space-between", gap: "8px" }}>

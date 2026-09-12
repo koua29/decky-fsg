@@ -278,10 +278,28 @@ def _build_game(appid):
 
 
 def _price(appid):
-    """Normal price of an app, in cents, without loading the whole store page."""
-    raw = json.loads(_http(f"{STORE}/api/appdetails?appids={appid}&filters=price_overview&l={_l()}")).get(str(appid)) or {}
-    price = (raw.get("data") or {}).get("price_overview") or {}
-    return price.get("initial") or 0, price.get("currency") or ""
+    """Normal price of a single app, in cents."""
+    return _prices([appid]).get(int(appid), (0, ""))
+
+
+PRICE_BATCH = 60          # app ids the store accepts in one price request
+PRICE_PAUSE = 1.0         # seconds between two batches, to stay polite
+
+
+def _prices(appids):
+    """Normal price of many apps at once. Only `price_overview` supports batching."""
+    prices = {}
+    for start in range(0, len(appids), PRICE_BATCH):
+        chunk = appids[start:start + PRICE_BATCH]
+        ids = ",".join(str(a) for a in chunk)
+        raw = json.loads(_http(f"{STORE}/api/appdetails?appids={ids}&filters=price_overview&l={_l()}")) or {}
+        for appid, entry in raw.items():
+            data = entry.get("data")
+            price = (data or {}).get("price_overview") or {} if isinstance(data, dict) else {}
+            prices[int(appid)] = (price.get("initial") or 0, price.get("currency") or "")
+        if start + PRICE_BATCH < len(appids):
+            time.sleep(PRICE_PAUSE)
+    return prices
 
 
 def _owned(session):
@@ -332,6 +350,7 @@ def _claim_license(session, game):
 REPO = "koua29/decky-fsg"
 ZIP_NAME = "FSG.zip"
 UPDATE_INTERVAL = 86400  # one GitHub check per day
+LIBRARY_INTERVAL = 7 * 86400  # the library is re-priced once a week
 CURRENT_VERSION = getattr(decky, "DECKY_PLUGIN_VERSION", "0.0.0")
 
 
@@ -377,7 +396,7 @@ def _latest_release(current, beta=False):
 
 class Plugin:
     settings = dict(DEFAULT_SETTINGS)
-    memory = {"seen": [], "attempts": {}, "claimed": [], "totals": {}, "counted": []}
+    memory = {"seen": [], "attempts": {}, "claimed": [], "totals": {}, "counted": [], "library": {}}
     games = []
     last_check = 0
     logged_in = None
@@ -394,7 +413,9 @@ class Plugin:
         self.settings = {**DEFAULT_SETTINGS, **_load(SETTINGS_FILE, {})}
         _set_lang(self.settings["language"])
         self.memory = {"seen": [], "attempts": {}, "claimed": [], "counted": [],
-                       "totals": {"count": 0, "cents": 0, "currency": ""}, **_load(MEMORY_FILE, {})}
+                       "totals": {"count": 0, "cents": 0, "currency": ""},
+                       "library": {"count": 0, "cents": 0, "currency": "", "priced": 0, "ts": 0},
+                       **_load(MEMORY_FILE, {})}
         self.task = asyncio.get_event_loop().create_task(self._loop())
         self.backfill = asyncio.get_event_loop().create_task(self._backfill_prices())
         decky.logger.info("FSG started")
@@ -462,12 +483,13 @@ class Plugin:
             "version": CURRENT_VERSION,
             "update": self.update,
             "totals": self.memory["totals"],
+            "library": self.memory["library"],
         }
 
     async def _loop(self):
         await asyncio.sleep(FIRST_CHECK_DELAY)
         while True:
-            for job in (self._check, self._check_update_if_due):
+            for job in (self._check, self._check_update_if_due, self._estimate_library_if_due):
                 try:
                     await job()
                 except asyncio.CancelledError:
@@ -475,6 +497,29 @@ class Plugin:
                 except Exception:
                     decky.logger.exception("Automatic %s failed", job.__name__)
             await asyncio.sleep(CHECK_INTERVAL)
+
+    async def _estimate_library_if_due(self, session=None):
+        library = self.memory["library"]
+        if time.time() - library.get("ts", 0) >= LIBRARY_INTERVAL:
+            await self._estimate_library(session)
+
+    async def _estimate_library(self, session=None):
+        """Rough worth of everything the account owns, priced in batches."""
+        session = session or await asyncio.to_thread(_session)
+        if not session:
+            return
+        apps, _ = await asyncio.to_thread(_owned, session)
+        prices = await asyncio.to_thread(_prices, sorted(apps))
+        priced = [(cents, currency) for cents, currency in prices.values() if cents]
+        self.memory["library"] = {
+            "count": len(apps),
+            "cents": sum(cents for cents, _ in priced),
+            "currency": next((c for _, c in priced if c), self.memory["totals"].get("currency", "")),
+            "priced": len(priced),
+            "ts": int(time.time()),
+        }
+        _save(MEMORY_FILE, self.memory)
+        await decky.emit("fsg_state", self._snapshot())
 
     async def _check_update_if_due(self):
         if time.time() - self.last_update_check >= UPDATE_INTERVAL:

@@ -19,7 +19,7 @@ Plugin **[Decky Loader](https://decky.xyz/)** pour **SteamOS** (Steam Deck, Leno
 - **Ajout automatique** (option, activée par défaut) : vérification toutes les heures ; chaque nouveau jeu à 0 € est ajouté et une notification s'affiche.
 - DLC gratuits en option, notifications désactivables.
 - **Ouvrir SteamDB** : affiche les promos à venir dans le navigateur de Steam.
-- **Valeur récupérée** : total des prix normaux des jeux que FSG t'a ajoutés, avec le détail jeu par jeu.
+- **Valeur récupérée** : total des prix normaux des jeux que FSG t'a ajoutés, avec le détail jeu par jeu, plus une estimation de la valeur de ta bibliothèque Steam (rafraîchie une fois par semaine).
 - **Interface en français ou en anglais**, choisie automatiquement d'après la langue de Steam (les noms et les prix des jeux suivent aussi).
 
 ## 📥 Installation
