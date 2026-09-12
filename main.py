@@ -350,7 +350,6 @@ def _claim_license(session, game):
 REPO = "koua29/decky-fsg"
 ZIP_NAME = "FSG.zip"
 UPDATE_INTERVAL = 86400  # one GitHub check per day
-LIBRARY_INTERVAL = 7 * 86400  # the library is re-priced once a week
 CURRENT_VERSION = getattr(decky, "DECKY_PLUGIN_VERSION", "0.0.0")
 
 
@@ -406,7 +405,8 @@ class Plugin:
     last_update_check = 0
     lock = None
     task = None
-    backfill = None
+    stats_task = None
+    computing_stats = False
 
     async def _main(self):
         self.lock = asyncio.Lock()
@@ -417,11 +417,10 @@ class Plugin:
                        "library": {"count": 0, "cents": 0, "currency": "", "priced": 0, "ts": 0},
                        **_load(MEMORY_FILE, {})}
         self.task = asyncio.get_event_loop().create_task(self._loop())
-        self.backfill = asyncio.get_event_loop().create_task(self._backfill_prices())
         decky.logger.info("FSG started")
 
     async def _unload(self):
-        for task in (self.task, self.backfill):
+        for task in (self.task, self.stats_task):
             if task:
                 task.cancel()
 
@@ -461,6 +460,23 @@ class Plugin:
                 asyncio.get_event_loop().create_task(self._check())
         return self.settings
 
+    async def recompute_stats(self):
+        """Prices the claimed games and the library. Only ever runs on the user's request."""
+        if self.computing_stats:
+            return self._snapshot()
+        self.computing_stats = True
+        await decky.emit("fsg_state", self._snapshot())
+        try:
+            await self._backfill_prices()
+            await self._estimate_library()
+        except Exception as e:
+            decky.logger.exception("Statistics failed")
+            self.error = str(e)
+        finally:
+            self.computing_stats = False
+        await decky.emit("fsg_state", self._snapshot())
+        return self._snapshot()
+
     async def check_update(self):
         return self.update if await self._check_update() else None
 
@@ -484,12 +500,13 @@ class Plugin:
             "update": self.update,
             "totals": self.memory["totals"],
             "library": self.memory["library"],
+            "computing_stats": self.computing_stats,
         }
 
     async def _loop(self):
         await asyncio.sleep(FIRST_CHECK_DELAY)
         while True:
-            for job in (self._check, self._check_update_if_due, self._estimate_library_if_due):
+            for job in (self._check, self._check_update_if_due):
                 try:
                     await job()
                 except asyncio.CancelledError:
@@ -497,11 +514,6 @@ class Plugin:
                 except Exception:
                     decky.logger.exception("Automatic %s failed", job.__name__)
             await asyncio.sleep(CHECK_INTERVAL)
-
-    async def _estimate_library_if_due(self, session=None):
-        library = self.memory["library"]
-        if time.time() - library.get("ts", 0) >= LIBRARY_INTERVAL:
-            await self._estimate_library(session)
 
     async def _estimate_library(self, session=None):
         """Rough worth of everything the account owns, priced in batches."""
@@ -588,9 +600,7 @@ class Plugin:
             totals["currency"] = entry["currency"]
 
     async def _backfill_prices(self):
-        """Games claimed before this version have no price: ask the store once."""
-        if self.memory.get("prices_backfilled"):
-            return
+        """Fills in the price of games claimed before this version, or missed earlier."""
         for entry in self.memory["claimed"]:
             if "price_cents" not in entry:
                 try:
@@ -600,7 +610,6 @@ class Plugin:
                     entry["price_cents"], entry["currency"] = 0, ""
                 await asyncio.sleep(0.5)
             self._count(entry)
-        self.memory["prices_backfilled"] = True
         _save(MEMORY_FILE, self.memory)
         await decky.emit("fsg_state", self._snapshot())
 

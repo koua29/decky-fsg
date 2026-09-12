@@ -61,6 +61,7 @@ interface State {
   claimed: { appid: number; name: string; ts: number; price_cents?: number; currency?: string }[];
   totals: { count: number; cents: number; currency: string };
   library: { count: number; cents: number; currency: string; priced: number; ts: number };
+  computing_stats: boolean;
   version: string;
   update: Update | null;
 }
@@ -78,6 +79,7 @@ const refresh = callable<[], State>("refresh");
 const claim = callable<[appid: number], ClaimResult>("claim");
 const setSetting = callable<[key: string, value: boolean | string], Settings>("set_setting");
 const checkUpdate = callable<[], Update | null>("check_update");
+const recomputeStats = callable<[], State>("recompute_stats");
 
 const STEAMDB_FREE_URL = "https://steamdb.info/upcoming/free/";
 const PLUGIN_NAME = "FSG";
@@ -232,6 +234,7 @@ function Content() {
   const [busy, setBusy] = useState(false);
   const [claiming, setClaiming] = useState<number | null>(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [computing, setComputing] = useState(false);
 
   const doRefresh = async () => {
     setBusy(true);
@@ -273,6 +276,15 @@ function Content() {
     }
   };
 
+  const onRecompute = async () => {
+    setComputing(true);
+    try {
+      setState(await recomputeStats());
+    } finally {
+      setComputing(false);
+    }
+  };
+
   const onCheckUpdate = async () => {
     setCheckingUpdate(true);
     try {
@@ -304,6 +316,7 @@ function Content() {
   }
 
   const checking = busy || state.checking;
+  const busyStats = computing || state.computing_stats;
 
   return (
     <>
@@ -411,18 +424,23 @@ function Content() {
         </PanelSectionRow>
         <PanelSectionRow>
           <div style={muted}>
-            {state.library.ts === 0
-              ? t.libraryPending
-              : state.library.cents > 0
-                ? t.libraryLine(state.library.count, money(state.library.cents, state.library.currency))
-                : t.libraryCount(state.library.count)}
+            {busyStats
+              ? t.libraryComputing
+              : state.library.ts === 0
+                ? t.libraryNever
+                : state.library.cents > 0
+                  ? t.libraryLine(state.library.count, money(state.library.cents, state.library.currency))
+                  : t.libraryCount(state.library.count)}
           </div>
         </PanelSectionRow>
-        {state.library.priced > 0 && (
-          <PanelSectionRow>
-            <div style={{ ...muted, opacity: 0.5 }}>{t.libraryHint}</div>
-          </PanelSectionRow>
-        )}
+        <PanelSectionRow>
+          <ButtonItem layout="below" disabled={busyStats} onClick={onRecompute}>
+            {busyStats ? t.libraryComputing : t.libraryRecalc}
+          </ButtonItem>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <div style={{ ...muted, opacity: 0.5 }}>{t.libraryHint}</div>
+        </PanelSectionRow>
         {state.claimed.map((c) => (
           <PanelSectionRow key={`${c.appid}-${c.ts}`}>
             <div style={{ ...muted, display: "flex", justifyContent: "space-between", gap: "8px" }}>
