@@ -61,11 +61,9 @@ Chaque version est publiée dans les [Releases](https://github.com/koua29/decky-
 
 ### Versions bêta
 
-Options → **Versions bêta** fait aussi regarder les versions de test (tags `vX.Y.Z-beta.N`, publiées en *pre-release* sur GitHub). Elles arrivent plus tôt et peuvent être instables.
+Options → **Versions bêta** fait aussi regarder les versions de test (tags `vX.Y.Z-beta.N`, publiées en *pre-release* sur GitHub). Elles arrivent plus tôt et peuvent être instables ; sans cette option, FSG ne propose que les versions stables.
 
 En repassant l'option sur off alors qu'une bêta est installée, le panneau propose de **revenir à la dernière version stable**.
-
-Pour installer la toute première bêta depuis une version stable (qui n'a pas encore l'option), passe une fois par l'URL de la pre-release, Decky → ⚙️ → Développeur → Installer un plugin depuis une URL.
 
 ## 🛠️ Développement
 
