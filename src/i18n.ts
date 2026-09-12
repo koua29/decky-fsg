@@ -70,7 +70,7 @@ const en = {
   libraryPricedSplit: (priced: number, free: number) =>
     `${priced} priced · ${free} at 0 (demos, free-to-play, delisted)`,
   statsButton: "See the statistics",
-  statsTitle: "FSG — Statistics",
+  statsTitle: "Statistics",
   back: "Back",
   libraryHint: "Items include DLC. Nothing is computed until you ask.",
   betaTag: "beta",
@@ -152,7 +152,7 @@ const fr: typeof en = {
   libraryPricedSplit: (priced, free) =>
     `${priced} chiffrés · ${free} à 0 € (démos, free-to-play, jeux retirés)`,
   statsButton: "Voir les statistiques",
-  statsTitle: "FSG — Statistiques",
+  statsTitle: "Statistiques",
   back: "Retour",
   libraryHint: "Les éléments comptent les DLC. Rien n'est calculé sans ta demande.",
   betaTag: "bêta",

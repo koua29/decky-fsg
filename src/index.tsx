@@ -11,14 +11,13 @@ import {
   callable,
   definePlugin,
   removeEventListener,
-  routerHook,
   toaster,
 } from "@decky/api";
 import { useEffect, useState } from "react";
 
 import logo from "../assets/fsg-logo.png";
 import { claimMessage, lang, t } from "./i18n";
-import { STATS_ROUTE, StatsPage, formatDate } from "./stats";
+import { StatsPanel, formatDate } from "./stats";
 import type { Game, Settings, State, Update } from "./types";
 
 interface ClaimResult {
@@ -54,11 +53,6 @@ function openStore(appid: number) {
 
 function openWeb(url: string) {
   Navigation.NavigateToExternalWeb(url);
-  Navigation.CloseSideMenus();
-}
-
-function openStats() {
-  Navigation.Navigate(STATS_ROUTE);
   Navigation.CloseSideMenus();
 }
 
@@ -175,6 +169,7 @@ function Content() {
   const [busy, setBusy] = useState(false);
   const [claiming, setClaiming] = useState<number | null>(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   const doRefresh = async () => {
     setBusy(true);
@@ -252,6 +247,10 @@ function Content() {
     );
   }
 
+  if (showStats) {
+    return <StatsPanel state={state} setState={setState} onBack={() => setShowStats(false)} />;
+  }
+
   const checking = busy || state.checking;
   const update = state.update;
 
@@ -303,7 +302,7 @@ function Content() {
 
       <PanelSection title={t.savingsSection}>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={openStats}>
+          <ButtonItem layout="below" onClick={() => setShowStats(true)}>
             {t.statsButton}
           </ButtonItem>
         </PanelSectionRow>
@@ -368,8 +367,6 @@ function Content() {
 }
 
 export default definePlugin(() => {
-  routerHook.addRoute(STATS_ROUTE, StatsPage, { exact: true });
-
   const onClaimed = addEventListener<[name: string, appid: number]>(
     "fsg_claimed",
     (name, appid) =>
@@ -414,7 +411,6 @@ export default definePlugin(() => {
     content: <Content />,
     icon: <Logo size="1em" />,
     onDismount() {
-      routerHook.removeRoute(STATS_ROUTE);
       removeEventListener("fsg_claimed", onClaimed);
       removeEventListener("fsg_new", onNew);
       removeEventListener("fsg_update", onUpdate);
