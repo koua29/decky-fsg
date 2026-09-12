@@ -11,60 +11,15 @@ import {
   callable,
   definePlugin,
   removeEventListener,
+  routerHook,
   toaster,
 } from "@decky/api";
 import { useEffect, useState } from "react";
 
 import logo from "../assets/fsg-logo.png";
-import { claimMessage, lang, locale, t } from "./i18n";
-
-interface Game {
-  appid: number;
-  subid: number | null;
-  name: string;
-  type: string;
-  image: string;
-  original_price: string;
-  ends: string;
-  owned: boolean;
-}
-
-interface Settings {
-  auto_claim: boolean;
-  include_dlc: boolean;
-  notify: boolean;
-  language: string;
-  beta: boolean;
-}
-
-interface Update {
-  current: string;
-  latest: string;
-  available: boolean;
-  rollback: boolean;
-  prerelease: boolean;
-  channel: string;
-  title: string;
-  notes: string;
-  url: string;
-  zip_url: string;
-  zip_sha256: string;
-}
-
-interface State {
-  games: Game[];
-  last_check: number;
-  logged_in: boolean | null;
-  error: string;
-  checking: boolean;
-  settings: Settings;
-  claimed: { appid: number; name: string; ts: number; price_cents?: number; currency?: string }[];
-  totals: { count: number; cents: number; currency: string };
-  library: { count: number; cents: number; currency: string; priced: number; ts: number };
-  computing_stats: boolean;
-  version: string;
-  update: Update | null;
-}
+import { claimMessage, lang, t } from "./i18n";
+import { STATS_ROUTE, StatsPage, formatDate } from "./stats";
+import type { Game, Settings, State, Update } from "./types";
 
 interface ClaimResult {
   ok: boolean;
@@ -79,7 +34,6 @@ const refresh = callable<[], State>("refresh");
 const claim = callable<[appid: number], ClaimResult>("claim");
 const setSetting = callable<[key: string, value: boolean | string], Settings>("set_setting");
 const checkUpdate = callable<[], Update | null>("check_update");
-const recomputeStats = callable<[], State>("recompute_stats");
 
 const STEAMDB_FREE_URL = "https://steamdb.info/upcoming/free/";
 const PLUGIN_NAME = "FSG";
@@ -103,6 +57,11 @@ function openWeb(url: string) {
   Navigation.CloseSideMenus();
 }
 
+function openStats() {
+  Navigation.Navigate(STATS_ROUTE);
+  Navigation.CloseSideMenus();
+}
+
 async function installUpdate(update: Update) {
   // Same call as Decky's own store: Decky shows its install prompt, checks the
   // SHA-256 of the zip, then reloads the plugin.
@@ -121,26 +80,8 @@ async function installUpdate(update: Update) {
   }
 }
 
-function money(cents: number, currency: string) {
-  if (!cents) return "";
-  try {
-    return new Intl.NumberFormat(locale, { style: "currency", currency: currency || "EUR" }).format(cents / 100);
-  } catch {
-    return `${(cents / 100).toFixed(2)} ${currency}`.trim();
-  }
-}
-
-function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleString(locale, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function UpdateBanner({ update }: { update: Update }) {
+/** Rows shown right under the "check for updates" button, so the answer appears where you asked. */
+function UpdateRows({ update }: { update: Update }) {
   const [installing, setInstalling] = useState(false);
 
   const onInstall = async () => {
@@ -153,9 +94,9 @@ function UpdateBanner({ update }: { update: Update }) {
   };
 
   return (
-    <PanelSection title={t.updateSection}>
+    <>
       <PanelSectionRow>
-        <div style={muted}>
+        <div style={{ ...muted, opacity: 1 }}>
           {t.updateLine(update.latest, update.current)}
           {update.prerelease && ` [${t.betaTag}]`}
           {update.title && <div style={{ fontWeight: "bold" }}>{update.title}</div>}
@@ -175,7 +116,7 @@ function UpdateBanner({ update }: { update: Update }) {
           {t.seeChanges}
         </ButtonItem>
       </PanelSectionRow>
-    </PanelSection>
+    </>
   );
 }
 
@@ -234,7 +175,6 @@ function Content() {
   const [busy, setBusy] = useState(false);
   const [claiming, setClaiming] = useState<number | null>(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
-  const [computing, setComputing] = useState(false);
 
   const doRefresh = async () => {
     setBusy(true);
@@ -276,15 +216,6 @@ function Content() {
     }
   };
 
-  const onRecompute = async () => {
-    setComputing(true);
-    try {
-      setState(await recomputeStats());
-    } finally {
-      setComputing(false);
-    }
-  };
-
   const onCheckUpdate = async () => {
     setCheckingUpdate(true);
     try {
@@ -292,7 +223,13 @@ function Content() {
       if (update) setState((s) => (s ? { ...s, update } : s));
       if (!update) {
         toaster.toast({ title: t.toastCheckFailed, body: t.toastCheckFailedBody });
-      } else if (!update.available) {
+      } else if (update.available || update.rollback) {
+        toaster.toast({
+          title: t.toastUpdateFound(update.latest),
+          body: t.toastUpdateFoundBody,
+          logo: <Logo size="100%" />,
+        });
+      } else {
         toaster.toast({ title: t.toastUpToDate, body: t.version(update.current), logo: <Logo size="100%" /> });
       }
     } finally {
@@ -316,7 +253,7 @@ function Content() {
   }
 
   const checking = busy || state.checking;
-  const busyStats = computing || state.computing_stats;
+  const update = state.update;
 
   return (
     <>
@@ -327,8 +264,6 @@ function Content() {
           </div>
         </PanelSectionRow>
       </PanelSection>
-
-      {(state.update?.available || state.update?.rollback) && <UpdateBanner update={state.update} />}
 
       <PanelSection title={t.freeSection}>
         {state.logged_in === false && (
@@ -363,6 +298,14 @@ function Content() {
           <div style={muted}>
             {t.lastCheck(state.last_check ? formatDate(state.last_check) : t.never)}
           </div>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t.savingsSection}>
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={openStats}>
+            {t.statsButton}
+          </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
 
@@ -404,60 +347,13 @@ function Content() {
             {checkingUpdate ? t.searching : t.checkUpdates}
           </ButtonItem>
         </PanelSectionRow>
+        {(update?.available || update?.rollback) && <UpdateRows update={update} />}
         <PanelSectionRow>
           <div style={muted}>
             {t.version(state.version)}
             {state.settings.beta && ` · ${t.betaTag}`}
           </div>
         </PanelSectionRow>
-      </PanelSection>
-
-      <PanelSection title={t.savingsSection}>
-        <PanelSectionRow>
-          <div style={{ fontWeight: "bold" }}>
-            {state.totals.count === 0
-              ? t.savingsEmpty
-              : state.totals.cents > 0
-                ? t.savingsTotal(state.totals.count, money(state.totals.cents, state.totals.currency))
-                : t.savingsCount(state.totals.count)}
-          </div>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <div style={muted}>
-            {busyStats
-              ? t.libraryComputing
-              : state.library.ts === 0
-                ? t.libraryNever
-                : state.library.cents > 0
-                  ? t.libraryLine(state.library.count, money(state.library.cents, state.library.currency))
-                  : t.libraryCount(state.library.count)}
-          </div>
-        </PanelSectionRow>
-        {state.library.ts > 0 && !busyStats && (
-          <PanelSectionRow>
-            <div style={{ ...muted, opacity: 0.6 }}>{t.libraryPriced(state.library.priced)}</div>
-          </PanelSectionRow>
-        )}
-        <PanelSectionRow>
-          <ButtonItem layout="below" disabled={busyStats} onClick={onRecompute}>
-            {busyStats ? t.libraryComputing : t.libraryRecalc}
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <div style={{ ...muted, opacity: 0.5 }}>{t.libraryHint}</div>
-        </PanelSectionRow>
-        {state.claimed.map((c) => (
-          <PanelSectionRow key={`${c.appid}-${c.ts}`}>
-            <div style={{ ...muted, display: "flex", justifyContent: "space-between", gap: "8px" }}>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {c.name}
-              </span>
-              <span style={{ whiteSpace: "nowrap" }}>
-                {money(c.price_cents || 0, c.currency || state.totals.currency) || formatDate(c.ts)}
-              </span>
-            </div>
-          </PanelSectionRow>
-        ))}
       </PanelSection>
 
       <PanelSection title={t.upcomingSection}>
@@ -472,6 +368,8 @@ function Content() {
 }
 
 export default definePlugin(() => {
+  routerHook.addRoute(STATS_ROUTE, StatsPage, { exact: true });
+
   const onClaimed = addEventListener<[name: string, appid: number]>(
     "fsg_claimed",
     (name, appid) =>
@@ -516,6 +414,7 @@ export default definePlugin(() => {
     content: <Content />,
     icon: <Logo size="1em" />,
     onDismount() {
+      routerHook.removeRoute(STATS_ROUTE);
       removeEventListener("fsg_claimed", onClaimed);
       removeEventListener("fsg_new", onNew);
       removeEventListener("fsg_update", onUpdate);

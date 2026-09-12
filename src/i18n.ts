@@ -66,8 +66,12 @@ const en = {
   libraryNever: "Library not measured yet.",
   libraryComputing: "Pricing your library…",
   libraryRecalc: "Recalculate the statistics",
-  libraryPriced: (priced: number) =>
-    `${priced} of them have a price — demos, free-to-play and delisted games count as 0.`,
+  libraryTitle: "Library",
+  libraryPricedSplit: (priced: number, free: number) =>
+    `${priced} priced · ${free} at 0 (demos, free-to-play, delisted)`,
+  statsButton: "See the statistics",
+  statsTitle: "FSG — Statistics",
+  back: "Back",
   libraryHint: "Items include DLC. Nothing is computed until you ask.",
   betaTag: "beta",
   rollbackTo: (version: string) => `Back to stable ${version}`,
@@ -80,6 +84,8 @@ const en = {
   toastUpToDate: "FSG is up to date",
   toastCheckFailed: "Check failed",
   toastCheckFailedBody: "GitHub is unreachable, try again later.",
+  toastUpdateFound: (version: string) => `Update available: ${version}`,
+  toastUpdateFoundBody: "The button is at the bottom of the panel, under Check for updates.",
   toastUpdate: (version: string) => `FSG ${version} is available`,
   toastUpdateBody: "Open FSG in the Decky menu to install it.",
 
@@ -142,8 +148,12 @@ const fr: typeof en = {
   libraryNever: "Bibliothèque pas encore mesurée.",
   libraryComputing: "Estimation de ta bibliothèque…",
   libraryRecalc: "Recalculer les statistiques",
-  libraryPriced: (priced) =>
-    `dont ${priced} avec un prix — démos, free-to-play et jeux retirés comptent pour 0 €.`,
+  libraryTitle: "Bibliothèque",
+  libraryPricedSplit: (priced, free) =>
+    `${priced} chiffrés · ${free} à 0 € (démos, free-to-play, jeux retirés)`,
+  statsButton: "Voir les statistiques",
+  statsTitle: "FSG — Statistiques",
+  back: "Retour",
   libraryHint: "Les éléments comptent les DLC. Rien n'est calculé sans ta demande.",
   betaTag: "bêta",
   rollbackTo: (version) => `Revenir à la version stable ${version}`,
@@ -156,6 +166,8 @@ const fr: typeof en = {
   toastUpToDate: "FSG est à jour",
   toastCheckFailed: "Vérification impossible",
   toastCheckFailedBody: "GitHub injoignable, réessaie plus tard.",
+  toastUpdateFound: (version) => `Mise à jour disponible : ${version}`,
+  toastUpdateFoundBody: "Le bouton est en bas du panneau, sous « Vérifier les mises à jour ».",
   toastUpdate: (version) => `Mise à jour FSG ${version} disponible`,
   toastUpdateBody: "Ouvre FSG dans le menu Decky pour l'installer.",
 
