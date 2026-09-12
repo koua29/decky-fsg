@@ -433,6 +433,11 @@ function Content() {
                   : t.libraryCount(state.library.count)}
           </div>
         </PanelSectionRow>
+        {state.library.ts > 0 && !busyStats && (
+          <PanelSectionRow>
+            <div style={{ ...muted, opacity: 0.6 }}>{t.libraryPriced(state.library.priced)}</div>
+          </PanelSectionRow>
+        )}
         <PanelSectionRow>
           <ButtonItem layout="below" disabled={busyStats} onClick={onRecompute}>
             {busyStats ? t.libraryComputing : t.libraryRecalc}

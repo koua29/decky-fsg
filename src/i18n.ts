@@ -66,7 +66,9 @@ const en = {
   libraryNever: "Library not measured yet.",
   libraryComputing: "Pricing your library…",
   libraryRecalc: "Recalculate the statistics",
-  libraryHint: "Items include DLC: the store prices them together. Nothing is computed until you ask.",
+  libraryPriced: (priced: number) =>
+    `${priced} of them have a price — demos, free-to-play and delisted games count as 0.`,
+  libraryHint: "Items include DLC. Nothing is computed until you ask.",
   betaTag: "beta",
   rollbackTo: (version: string) => `Back to stable ${version}`,
   upcomingSection: "Upcoming promos",
@@ -140,7 +142,9 @@ const fr: typeof en = {
   libraryNever: "Bibliothèque pas encore mesurée.",
   libraryComputing: "Estimation de ta bibliothèque…",
   libraryRecalc: "Recalculer les statistiques",
-  libraryHint: "Les éléments comptent les DLC : le store les chiffre ensemble. Rien n'est calculé sans ta demande.",
+  libraryPriced: (priced) =>
+    `dont ${priced} avec un prix — démos, free-to-play et jeux retirés comptent pour 0 €.`,
+  libraryHint: "Les éléments comptent les DLC. Rien n'est calculé sans ta demande.",
   betaTag: "bêta",
   rollbackTo: (version) => `Revenir à la version stable ${version}`,
   upcomingSection: "Promos à venir",
