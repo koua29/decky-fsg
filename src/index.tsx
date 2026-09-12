@@ -1,5 +1,6 @@
 import {
   ButtonItem,
+  Focusable,
   Navigation,
   PanelSection,
   PanelSectionRow,
@@ -144,7 +145,10 @@ function GameCard({
   return (
     <>
       <PanelSectionRow>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
+        <Focusable
+          style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}
+          onActivate={() => openStore(game.appid)}
+        >
           {game.image && <img src={game.image} style={{ width: "100%", borderRadius: "4px" }} />}
           <div style={{ fontWeight: "bold" }}>{game.name}</div>
           <div style={muted}>
@@ -157,7 +161,7 @@ function GameCard({
             {game.type !== "game" && ` · ${t.dlc}`}
           </div>
           {game.ends && <div style={muted}>{game.ends}</div>}
-        </div>
+        </Focusable>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem
@@ -271,9 +275,9 @@ function Content() {
     <>
       <PanelSection>
         <PanelSectionRow>
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <Focusable style={{ display: "flex", justifyContent: "center" }} onActivate={() => {}}>
             <Logo size="96px" />
-          </div>
+          </Focusable>
         </PanelSectionRow>
       </PanelSection>
 

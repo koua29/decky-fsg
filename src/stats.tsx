@@ -1,4 +1,4 @@
-import { ButtonItem, PanelSection, PanelSectionRow } from "@decky/ui";
+import { ButtonItem, Focusable, PanelSection, PanelSectionRow } from "@decky/ui";
 import { callable } from "@decky/api";
 import { useState } from "react";
 
@@ -58,23 +58,23 @@ export function StatsPanel({
     <>
       <PanelSection title={t.statsTitle}>
         <PanelSectionRow>
-          <div>
+          <Focusable onActivate={() => {}}>
             <div style={label}>{t.savingsSection}</div>
             <div style={{ ...big, color: "#a4d007" }}>
               {totals.cents > 0 ? money(totals.cents, totals.currency) : "—"}
             </div>
             <div style={muted}>{t.savingsCount(totals.count)}</div>
-          </div>
+          </Focusable>
         </PanelSectionRow>
         <PanelSectionRow>
-          <div>
+          <Focusable onActivate={() => {}}>
             <div style={label}>{t.libraryTitle}</div>
             <div style={big}>{library.ts ? money(library.cents, library.currency) || "—" : "—"}</div>
             <div style={muted}>
               {library.ts ? t.libraryCount(library.count) : t.libraryNever}
               {library.ts > 0 && <div>{t.libraryPricedSplit(library.priced, free)}</div>}
             </div>
-          </div>
+          </Focusable>
         </PanelSectionRow>
         <PanelSectionRow>
           <ButtonItem layout="below" disabled={busy} onClick={onRecompute}>
@@ -94,7 +94,7 @@ export function StatsPanel({
         )}
         {claimed.map((c) => (
           <PanelSectionRow key={`${c.appid}-${c.ts}`}>
-            <div style={{ width: "100%" }}>
+            <Focusable style={{ width: "100%" }} onActivate={() => {}}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {c.name}
@@ -104,7 +104,7 @@ export function StatsPanel({
                 </span>
               </div>
               <div style={muted}>{formatDate(c.ts)}</div>
-            </div>
+            </Focusable>
           </PanelSectionRow>
         ))}
       </PanelSection>
