@@ -34,12 +34,16 @@ interface Settings {
   include_dlc: boolean;
   notify: boolean;
   language: string;
+  beta: boolean;
 }
 
 interface Update {
   current: string;
   latest: string;
   available: boolean;
+  rollback: boolean;
+  prerelease: boolean;
+  channel: string;
   title: string;
   notes: string;
   url: string;
@@ -54,7 +58,8 @@ interface State {
   error: string;
   checking: boolean;
   settings: Settings;
-  claimed: { appid: number; name: string; ts: number }[];
+  claimed: { appid: number; name: string; ts: number; price_cents?: number; currency?: string }[];
+  totals: { count: number; cents: number; currency: string };
   version: string;
   update: Update | null;
 }
@@ -65,7 +70,7 @@ interface ClaimResult {
   detail: string;
 }
 
-type ToggleKey = "auto_claim" | "include_dlc" | "notify";
+type ToggleKey = "auto_claim" | "include_dlc" | "notify" | "beta";
 
 const getState = callable<[], State>("get_state");
 const refresh = callable<[], State>("refresh");
@@ -113,6 +118,15 @@ async function installUpdate(update: Update) {
   }
 }
 
+function money(cents: number, currency: string) {
+  if (!cents) return "";
+  try {
+    return new Intl.NumberFormat(locale, { style: "currency", currency: currency || "EUR" }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency}`.trim();
+  }
+}
+
 function formatDate(ts: number) {
   return new Date(ts * 1000).toLocaleString(locale, {
     weekday: "short",
@@ -140,12 +154,17 @@ function UpdateBanner({ update }: { update: Update }) {
       <PanelSectionRow>
         <div style={muted}>
           {t.updateLine(update.latest, update.current)}
+          {update.prerelease && ` [${t.betaTag}]`}
           {update.title && <div style={{ fontWeight: "bold" }}>{update.title}</div>}
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem layout="below" disabled={installing} onClick={onInstall}>
-          {installing ? t.installing : t.updateTo(update.latest)}
+          {installing
+            ? t.installing
+            : update.available
+              ? t.updateTo(update.latest)
+              : t.rollbackTo(update.latest)}
         </ButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
@@ -295,7 +314,7 @@ function Content() {
         </PanelSectionRow>
       </PanelSection>
 
-      {state.update?.available && <UpdateBanner update={state.update} />}
+      {(state.update?.available || state.update?.rollback) && <UpdateBanner update={state.update} />}
 
       <PanelSection title={t.freeSection}>
         {state.logged_in === false && (
@@ -359,26 +378,49 @@ function Content() {
           />
         </PanelSectionRow>
         <PanelSectionRow>
+          <ToggleField
+            label={t.beta}
+            description={t.betaHelp}
+            checked={state.settings.beta}
+            onChange={(v) => toggle("beta", v)}
+          />
+        </PanelSectionRow>
+        <PanelSectionRow>
           <ButtonItem layout="below" disabled={checkingUpdate} onClick={onCheckUpdate}>
             {checkingUpdate ? t.searching : t.checkUpdates}
           </ButtonItem>
         </PanelSectionRow>
         <PanelSectionRow>
-          <div style={muted}>{t.version(state.version)}</div>
+          <div style={muted}>
+            {t.version(state.version)}
+            {state.settings.beta && ` · ${t.betaTag}`}
+          </div>
         </PanelSectionRow>
       </PanelSection>
 
-      {state.claimed.length > 0 && (
-        <PanelSection title={t.historySection}>
-          {state.claimed.map((c) => (
-            <PanelSectionRow key={`${c.appid}-${c.ts}`}>
-              <div style={muted}>
-                {c.name} — {formatDate(c.ts)}
-              </div>
-            </PanelSectionRow>
-          ))}
-        </PanelSection>
-      )}
+      <PanelSection title={t.savingsSection}>
+        <PanelSectionRow>
+          <div style={{ fontWeight: "bold" }}>
+            {state.totals.count === 0
+              ? t.savingsEmpty
+              : state.totals.cents > 0
+                ? t.savingsTotal(state.totals.count, money(state.totals.cents, state.totals.currency))
+                : t.savingsCount(state.totals.count)}
+          </div>
+        </PanelSectionRow>
+        {state.claimed.map((c) => (
+          <PanelSectionRow key={`${c.appid}-${c.ts}`}>
+            <div style={{ ...muted, display: "flex", justifyContent: "space-between", gap: "8px" }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {c.name}
+              </span>
+              <span style={{ whiteSpace: "nowrap" }}>
+                {money(c.price_cents || 0, c.currency || state.totals.currency) || formatDate(c.ts)}
+              </span>
+            </div>
+          </PanelSectionRow>
+        ))}
+      </PanelSection>
 
       <PanelSection title={t.upcomingSection}>
         <PanelSectionRow>

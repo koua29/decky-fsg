@@ -19,6 +19,7 @@ Plugin **[Decky Loader](https://decky.xyz/)** pour **SteamOS** (Steam Deck, Leno
 - **Ajout automatique** (option, activée par défaut) : vérification toutes les heures ; chaque nouveau jeu à 0 € est ajouté et une notification s'affiche.
 - DLC gratuits en option, notifications désactivables.
 - **Ouvrir SteamDB** : affiche les promos à venir dans le navigateur de Steam.
+- **Valeur récupérée** : total des prix normaux des jeux que FSG t'a ajoutés, avec le détail jeu par jeu.
 - **Interface en français ou en anglais**, choisie automatiquement d'après la langue de Steam (les noms et les prix des jeux suivent aussi).
 
 ## 📥 Installation
@@ -57,6 +58,14 @@ Tu peux aussi vérifier à la main (Options → **Vérifier les mises à jour**)
 Depuis la 0.1.0, qui n'a pas cette vérification, il faut réinstaller une fois par l'URL.
 
 Chaque version est publiée dans les [Releases](https://github.com/koua29/decky-fsg/releases) avec un tag `vX.Y.Z` et la liste des nouveautés.
+
+### Versions bêta
+
+Options → **Versions bêta** fait aussi regarder les versions de test (tags `vX.Y.Z-beta.N`, publiées en *pre-release* sur GitHub). Elles arrivent plus tôt et peuvent être instables.
+
+En repassant l'option sur off alors qu'une bêta est installée, le panneau propose de **revenir à la dernière version stable**.
+
+Pour installer la toute première bêta depuis une version stable (qui n'a pas encore l'option), passe une fois par l'URL de la pre-release, Decky → ⚙️ → Développeur → Installer un plugin depuis une URL.
 
 ## 🛠️ Développement
 

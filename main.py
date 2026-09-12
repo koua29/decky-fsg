@@ -35,7 +35,7 @@ CHECK_INTERVAL = 3600    # seconds between two automatic checks
 MAX_ATTEMPTS = 3         # automatic claim attempts per package before giving up
 MAX_CANDIDATES = 30
 
-DEFAULT_SETTINGS = {"auto_claim": True, "include_dlc": False, "notify": True, "language": "en"}
+DEFAULT_SETTINGS = {"auto_claim": True, "include_dlc": False, "notify": True, "language": "en", "beta": False}
 STEAM_LANG = {"en": "english", "fr": "french"}  # store pages and prices follow the interface
 _lang = "en"
 SETTINGS_FILE = os.path.join(decky.DECKY_PLUGIN_SETTINGS_DIR, "settings.json")
@@ -270,9 +270,18 @@ def _build_game(appid):
         "type": data.get("type") or "game",
         "image": data.get("header_image", ""),
         "original_price": price.get("initial_formatted", ""),
+        "price_cents": price.get("initial") or 0,
+        "currency": price.get("currency") or "",
         "ends": ends,
         "owned": False,
     }
+
+
+def _price(appid):
+    """Normal price of an app, in cents, without loading the whole store page."""
+    raw = json.loads(_http(f"{STORE}/api/appdetails?appids={appid}&filters=price_overview&l={_l()}")).get(str(appid)) or {}
+    price = (raw.get("data") or {}).get("price_overview") or {}
+    return price.get("initial") or 0, price.get("currency") or ""
 
 
 def _owned(session):
@@ -326,20 +335,36 @@ UPDATE_INTERVAL = 86400  # one GitHub check per day
 CURRENT_VERSION = getattr(decky, "DECKY_PLUGIN_VERSION", "0.0.0")
 
 
-def _version_tuple(version):
-    return tuple(int(n) for n in re.findall(r"\d+", version)[:3])
+_PRERELEASE = re.compile(r"-(?:beta|rc|alpha)\.?(\d+)?", re.I)
 
 
-def _latest_release(current):
-    """Latest GitHub release of the plugin, compared with the installed version."""
-    release = json.loads(_http(f"https://api.github.com/repos/{REPO}/releases/latest"))
+def _version_key(version):
+    """Sortable version: 0.4.0-beta.2 sits after 0.3.9 but before 0.4.0."""
+    numbers = tuple(int(n) for n in re.findall(r"\d+", version.split("-", 1)[0])[:3])
+    numbers += (0,) * (3 - len(numbers))
+    pre = _PRERELEASE.search(version)
+    return numbers + ((0, int(pre.group(1) or 0)) if pre else (1, 0))
+
+
+def _latest_release(current, beta=False):
+    """Newest release of the chosen channel, compared with the installed version."""
+    if beta:
+        releases = [r for r in json.loads(_http(f"https://api.github.com/repos/{REPO}/releases?per_page=20"))
+                    if not r.get("draft")]
+        release = max(releases, key=lambda r: _version_key(r.get("tag_name", "")), default={})
+    else:
+        release = json.loads(_http(f"https://api.github.com/repos/{REPO}/releases/latest"))
     asset = next((a for a in release.get("assets", []) if a.get("name") == ZIP_NAME), {})
     latest = release.get("tag_name", "").lstrip("v")
     digest = asset.get("digest") or ""
     return {
         "current": current,
         "latest": latest,
-        "available": bool(asset) and _version_tuple(latest) > _version_tuple(current),
+        "available": bool(asset) and _version_key(latest) > _version_key(current),
+        # Leaving the beta channel while running a beta build: offer the stable one back.
+        "rollback": bool(asset) and not beta and _version_key(latest) < _version_key(current),
+        "prerelease": bool(release.get("prerelease")),
+        "channel": "beta" if beta else "stable",
         "title": release.get("name", ""),
         "notes": (release.get("body") or "")[:800],
         "url": release.get("html_url", ""),
@@ -352,7 +377,7 @@ def _latest_release(current):
 
 class Plugin:
     settings = dict(DEFAULT_SETTINGS)
-    memory = {"seen": [], "attempts": {}, "claimed": []}
+    memory = {"seen": [], "attempts": {}, "claimed": [], "totals": {}, "counted": []}
     games = []
     last_check = 0
     logged_in = None
@@ -362,18 +387,22 @@ class Plugin:
     last_update_check = 0
     lock = None
     task = None
+    backfill = None
 
     async def _main(self):
         self.lock = asyncio.Lock()
         self.settings = {**DEFAULT_SETTINGS, **_load(SETTINGS_FILE, {})}
         _set_lang(self.settings["language"])
-        self.memory = {"seen": [], "attempts": {}, "claimed": [], **_load(MEMORY_FILE, {})}
+        self.memory = {"seen": [], "attempts": {}, "claimed": [], "counted": [],
+                       "totals": {"count": 0, "cents": 0, "currency": ""}, **_load(MEMORY_FILE, {})}
         self.task = asyncio.get_event_loop().create_task(self._loop())
+        self.backfill = asyncio.get_event_loop().create_task(self._backfill_prices())
         decky.logger.info("FSG started")
 
     async def _unload(self):
-        if self.task:
-            self.task.cancel()
+        for task in (self.task, self.backfill):
+            if task:
+                task.cancel()
 
     # ---- called by the frontend
 
@@ -400,6 +429,10 @@ class Plugin:
             _save(SETTINGS_FILE, self.settings)
             # Names and prices come from the store in that language: fetch them again.
             asyncio.get_event_loop().create_task(self._check())
+        elif key == "beta":
+            self.settings["beta"] = bool(value)
+            _save(SETTINGS_FILE, self.settings)
+            asyncio.get_event_loop().create_task(self._check_update())
         elif key in DEFAULT_SETTINGS:
             self.settings[key] = bool(value)
             _save(SETTINGS_FILE, self.settings)
@@ -425,9 +458,10 @@ class Plugin:
             "error": self.error,
             "checking": self.checking,
             "settings": self.settings,
-            "claimed": self.memory["claimed"][-5:][::-1],
+            "claimed": self.memory["claimed"][::-1],
             "version": CURRENT_VERSION,
             "update": self.update,
+            "totals": self.memory["totals"],
         }
 
     async def _loop(self):
@@ -449,7 +483,7 @@ class Plugin:
     async def _check_update(self):
         self.last_update_check = time.time()
         try:
-            self.update = await asyncio.to_thread(_latest_release, CURRENT_VERSION)
+            self.update = await asyncio.to_thread(_latest_release, CURRENT_VERSION, self.settings["beta"])
         except (OSError, ValueError) as e:
             decky.logger.warning("Update check failed: %s", e)
             return False
@@ -497,6 +531,34 @@ class Plugin:
         self.memory["seen"] = seen[-300:]
         self.memory["attempts"] = {k: v for k, v in self.memory["attempts"].items() if k in current}
 
+    def _count(self, entry):
+        """One game counted once, whatever happens to the trimmed history."""
+        if entry["appid"] in self.memory["counted"]:
+            return
+        self.memory["counted"] = (self.memory["counted"] + [entry["appid"]])[-500:]
+        totals = self.memory["totals"]
+        totals["count"] = totals.get("count", 0) + 1
+        totals["cents"] = totals.get("cents", 0) + (entry.get("price_cents") or 0)
+        if entry.get("currency"):
+            totals["currency"] = entry["currency"]
+
+    async def _backfill_prices(self):
+        """Games claimed before this version have no price: ask the store once."""
+        if self.memory.get("prices_backfilled"):
+            return
+        for entry in self.memory["claimed"]:
+            if "price_cents" not in entry:
+                try:
+                    entry["price_cents"], entry["currency"] = await asyncio.to_thread(_price, entry["appid"])
+                except (OSError, ValueError) as e:
+                    decky.logger.warning("Price of %s unknown: %s", entry["appid"], e)
+                    entry["price_cents"], entry["currency"] = 0, ""
+                await asyncio.sleep(0.5)
+            self._count(entry)
+        self.memory["prices_backfilled"] = True
+        _save(MEMORY_FILE, self.memory)
+        await decky.emit("fsg_state", self._snapshot())
+
     async def _claim(self, game, session=None, announce=False):
         session = session or await asyncio.to_thread(_session)
         if not session:
@@ -511,8 +573,10 @@ class Plugin:
         if ok:
             game["owned"] = True
             self.memory["attempts"].pop(key, None)
-            self.memory["claimed"] = (self.memory["claimed"] + [
-                {"appid": game["appid"], "name": game["name"], "ts": int(time.time())}])[-50:]
+            entry = {"appid": game["appid"], "name": game["name"], "ts": int(time.time()),
+                     "price_cents": game.get("price_cents") or 0, "currency": game.get("currency") or ""}
+            self.memory["claimed"] = (self.memory["claimed"] + [entry])[-50:]
+            self._count(entry)
             if announce and self.settings["notify"]:
                 await decky.emit("fsg_claimed", game["name"], game["appid"])
         else:
