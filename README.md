@@ -12,6 +12,18 @@ Plugin **[Decky Loader](https://decky.xyz/)** pour **SteamOS** (Steam Deck, Leno
 
 <p align="center"><em>FSG en fonctionnement sur une Lenovo Legion Go 2 (SteamOS).</em></p>
 
+### ✅ Testé en conditions réelles
+
+Le 14 septembre 2026, **Crystal Crisis** (16,79 €) est passé à 100 % : FSG l'a **ajouté tout seul** à la bibliothèque dès l'allumage de la Legion Go 2, sans aucune action.
+
+<p align="center">
+  <img src="docs/proof-claimed.jpg" alt="Crystal Crisis dans la liste Gratuits à garder de FSG, marqué Déjà dans ta bibliothèque" width="40%">
+  &nbsp;
+  <img src="docs/proof-stats.jpg" alt="La vue Statistiques de FSG : Crystal Crisis dans Récemment ajoutés, 16,79 €, lundi 14 septembre à 18 h 24" width="42%">
+</p>
+
+<p align="center"><em>À gauche, le jeu marqué « Déjà dans ta bibliothèque » ; à droite, la vue Statistiques (bêta 0.4.0) qui l'affiche dans « Récemment ajoutés ».</em></p>
+
 ## ✨ Fonctions
 
 - Liste des promos gratuites en cours, lues directement sur le store Steam : prix normal, date de fin quand Steam l'affiche.
