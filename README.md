@@ -1,122 +1,124 @@
-<p align="center"><img src="docs/fsg-banner.jpeg" alt="FSG — Free Steam Game, plugin Steam Deck" width="100%"></p>
+<p align="center"><img src="docs/fsg-banner.jpeg" alt="FSG — Free Steam Game, Steam Deck plugin" width="100%"></p>
+
+<p align="center"><b>English</b> · <a href="README.fr.md">Français</a></p>
 
 # FSG — Free Steam Game
 
-Plugin **[Decky Loader](https://decky.xyz/)** pour **SteamOS** (Steam Deck, Lenovo Legion Go S / Go 2…). Il liste les jeux Steam **gratuits à garder** (remise temporaire de 100 %) dans le menu d'accès rapide, et les ajoute à ta bibliothèque en un clic, ou tout seul.
+**[Decky Loader](https://decky.xyz/)** plugin for **SteamOS** (Steam Deck, Lenovo Legion Go S / Go 2…). It lists Steam games that are **free to keep** (temporary 100% discount) in the Quick Access Menu, and adds them to your library in one click, or on its own.
 
-## 📸 Aperçu
+## 📸 Preview
 
-<p align="center"><img src="docs/screenshot-device.jpg" alt="Le panneau FSG dans le menu d'accès rapide, sur une Lenovo Legion Go 2 sous SteamOS" width="80%"></p>
+<p align="center"><img src="docs/screenshot-device.jpg" alt="The FSG panel in the Quick Access Menu, on a Lenovo Legion Go 2 running SteamOS" width="80%"></p>
 
-<p align="center"><img src="docs/screenshot-options.jpg" alt="Les options de FSG : ajout automatique, DLC gratuits, notifications, vérification des mises à jour" width="40%"></p>
+<p align="center"><img src="docs/screenshot-options.jpg" alt="FSG options: automatic add, free DLC, notifications, update check" width="40%"></p>
 
-<p align="center"><em>FSG en fonctionnement sur une Lenovo Legion Go 2 (SteamOS).</em></p>
+<p align="center"><em>FSG running on a Lenovo Legion Go 2 (SteamOS), with the French interface.</em></p>
 
-### ✅ Testé en conditions réelles
+### ✅ Tested for real
 
-Le 14 septembre 2026, **Crystal Crisis** (16,79 €) est passé à 100 % : FSG l'a **ajouté tout seul** à la bibliothèque dès l'allumage de la Legion Go 2, sans aucune action.
+On September 14, 2026, **Crystal Crisis** (€16.79) went 100% off: FSG **added it to the library on its own** as soon as the Legion Go 2 was turned on, without any action.
 
 <p align="center">
-  <img src="docs/proof-claimed.jpg" alt="Crystal Crisis dans la liste Gratuits à garder de FSG, marqué Déjà dans ta bibliothèque" width="40%">
+  <img src="docs/proof-claimed.jpg" alt="Crystal Crisis in FSG's Free to keep list, marked Already in your library" width="40%">
   &nbsp;
-  <img src="docs/proof-stats.jpg" alt="La vue Statistiques de FSG : Crystal Crisis dans Récemment ajoutés, 16,79 €, lundi 14 septembre à 18 h 24" width="42%">
+  <img src="docs/proof-stats.jpg" alt="FSG's Statistics view: Crystal Crisis in Recently added, €16.79, Monday September 14 at 18:24" width="42%">
 </p>
 
-<p align="center"><em>À gauche, le jeu marqué « Déjà dans ta bibliothèque » ; à droite, la vue Statistiques (bêta 0.4.0) qui l'affiche dans « Récemment ajoutés ».</em></p>
+<p align="center"><em>Left, the game marked "Already in your library"; right, the Statistics view (0.4.0 beta) listing it under "Recently added".</em></p>
 
-## ✨ Fonctions
+## ✨ Features
 
-- Liste des promos gratuites en cours, lues directement sur le store Steam : prix normal, date de fin quand Steam l'affiche.
-- **Ajouter à ma bibliothèque** : ajoute la licence gratuite à ton compte sans ouvrir le Store.
-- **Ajout automatique** (option, activée par défaut) : vérification toutes les heures ; chaque nouveau jeu à 0 € est ajouté et une notification s'affiche.
-- DLC gratuits en option, notifications désactivables.
-- **Ouvrir SteamDB** : affiche les promos à venir dans le navigateur de Steam.
-- **Interface en français ou en anglais**, choisie automatiquement d'après la langue de Steam (les noms et les prix des jeux suivent aussi).
+- List of the current free promos, read straight from the Steam store: normal price, end date when Steam shows it.
+- **Add to my library**: adds the free license to your account without opening the Store.
+- **Automatic add** (option, on by default): checks every hour; every new game at €0 is added and a notification shows up.
+- Optional free DLC, notifications can be turned off.
+- **Open SteamDB**: shows upcoming promos in Steam's browser.
+- **English or French interface**, picked automatically from Steam's language (game names and prices follow too).
 
 ## 📥 Installation
 
-Prérequis : une console sous SteamOS avec [Decky Loader](https://decky.xyz/) installé.
+Requirement: a SteamOS console with [Decky Loader](https://decky.xyz/) installed.
 
-### Depuis la console, par URL (le plus simple)
+### From the console, by URL (easiest)
 
-1. Decky → ⚙️ Paramètres → Général → activer le **Mode développeur**.
-2. Decky → ⚙️ → **Développeur** → **Installer un plugin depuis une URL**, puis coller :
+1. Decky → ⚙️ Settings → General → turn on **Developer mode**.
+2. Decky → ⚙️ → **Developer** → **Install plugin from URL**, then paste:
    ```
    https://github.com/koua29/decky-fsg/releases/latest/download/FSG.zip
    ```
-3. Valider : **FSG** apparaît dans la liste des plugins Decky.
+3. Confirm: **FSG** shows up in the Decky plugin list.
 
-### Avec le fichier ZIP
+### With the ZIP file
 
-Télécharger `FSG.zip` depuis la page [Releases](https://github.com/koua29/decky-fsg/releases), puis Decky → ⚙️ → Développeur → **Installer un plugin depuis un fichier ZIP**.
+Download `FSG.zip` from the [Releases](https://github.com/koua29/decky-fsg/releases) page, then Decky → ⚙️ → Developer → **Install plugin from ZIP file**.
 
-## ⚙️ Fonctionnement
+## ⚙️ How it works
 
-- **Promos** : recherche du store Steam `maxprice=free&specials=1` (jeux payants affichés à 0 €), puis `appdetails` et la page du jeu pour trouver le paquet gratuit (`subid`).
-- **Ajout** : même requête que le bouton « Ajouter au compte » du store (`/freelicense/addfreelicense/<subid>`), puis vérification dans la liste des licences du compte.
-- **Session** : le plugin lit localement les cookies du store dans le navigateur intégré de Steam, via le port de débogage CEF que Decky utilise déjà (`127.0.0.1:8080`). Ils ne sont envoyés qu'à `store.steampowered.com`.
+- **Promos**: Steam store search `maxprice=free&specials=1` (paid games shown at €0), then `appdetails` and the game page to find the free package (`subid`).
+- **Adding**: the same request as the store's "Add to Account" button (`/freelicense/addfreelicense/<subid>`), then a check in the account's license list.
+- **Session**: the plugin reads the store cookies locally from Steam's built-in browser, through the CEF debugging port Decky already uses (`127.0.0.1:8080`). They are only sent to `store.steampowered.com`.
 
-SteamDB n'est pas interrogé automatiquement : le site bloque les requêtes hors navigateur (Cloudflare, HTTP 403).
+SteamDB is not queried automatically: the site blocks requests that do not come from a browser (Cloudflare, HTTP 403).
 
-**Statut** : projet jeune (0.x). En cas de souci, les journaux sont dans `~/homebrew/logs/FSG/` : ouvre une [issue](https://github.com/koua29/decky-fsg/issues) avec leur contenu.
+**Status**: young project (0.x). If something goes wrong, the logs are in `~/homebrew/logs/FSG/`: open an [issue](https://github.com/koua29/decky-fsg/issues) with their content.
 
-## 🔄 Mises à jour
+## 🔄 Updates
 
-FSG vérifie une fois par jour s'il existe une nouvelle version sur GitHub. Si c'est le cas, une notification s'affiche et le panneau propose **Mettre à jour** : Decky ouvre sa fenêtre de confirmation habituelle, vérifie l'empreinte SHA-256 du zip, puis recharge le plugin. Les réglages et l'historique sont rangés hors du dossier du plugin, dans `~/homebrew/settings/FSG/` et `~/homebrew/data/FSG/`, et ne sont pas touchés.
+FSG checks once a day whether a new version is available on GitHub. When there is one, a notification shows up and the panel offers **Update to X.Y.Z**: Decky opens its usual confirmation window, checks the zip's SHA-256 checksum, then reloads the plugin. Settings and history are stored outside the plugin folder, in `~/homebrew/settings/FSG/` and `~/homebrew/data/FSG/`, and are left untouched.
 
-Tu peux aussi vérifier à la main (Options → **Vérifier les mises à jour**), ou réinstaller par l'URL ci-dessus, qui pointe toujours vers la dernière version.
+You can also check by hand (Options → **Check for updates**), or reinstall from the URL above, which always points to the latest version.
 
-Depuis la 0.1.0, qui n'a pas cette vérification, il faut réinstaller une fois par l'URL.
+From 0.1.0, which does not have this check, you need to reinstall once from the URL.
 
-Chaque version est publiée dans les [Releases](https://github.com/koua29/decky-fsg/releases) avec un tag `vX.Y.Z` et la liste des nouveautés.
+Each version is published in the [Releases](https://github.com/koua29/decky-fsg/releases) with a `vX.Y.Z` tag and its changelog.
 
-### Versions bêta
+### Beta versions
 
-Options → **Versions bêta** fait aussi regarder les versions de test (tags `vX.Y.Z-beta.N`, publiées en *pre-release* sur GitHub). Elles arrivent plus tôt et peuvent être instables ; sans cette option, FSG ne propose que les versions stables.
+Options → **Beta versions** also looks at test versions (`vX.Y.Z-beta.N` tags, published as *pre-releases* on GitHub). They come earlier and may be unstable; without this option, FSG only offers stable versions.
 
-En repassant l'option sur off alors qu'une bêta est installée, le panneau propose de **revenir à la dernière version stable**.
+Turning the option off while a beta is installed makes the panel offer to **go back to the latest stable version**.
 
-## 🛠️ Développement
+## 🛠️ Development
 
 ```bash
 npm install
 npm run build
 ```
 
-Paquet : un dossier `FSG/` contenant `dist/`, `main.py`, `plugin.json`, `package.json`, `LICENSE` et `README.md`.
+Package: a `FSG/` folder containing `dist/`, `main.py`, `plugin.json`, `package.json`, `LICENSE` and `README.md`.
 
-## 🎮 Consoles SteamOS
+## 🎮 SteamOS consoles
 
-*Liens partenaires Amazon : si vous achetez via ces liens, le projet touche une petite commission, sans surcoût pour vous. Ce sont des consoles portables sous SteamOS, sur lesquelles FSG s'installe avec Decky Loader.*
+*Amazon affiliate links (amazon.fr): if you buy through these links, the project earns a small commission at no extra cost to you. These are SteamOS handhelds FSG installs on with Decky Loader.*
 
 <table>
 <tr>
 <td align="center" width="33%">
   <a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=d8fe32650df59e4b587c0f3faa6e2762&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0CQ3RWQQZ.jpg" width="200" alt="Steam Deck OLED"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=d8fe32650df59e4b587c0f3faa6e2762&amp;ref_=as_li_ss_tl">Steam Deck OLED</a></b><br><sub>La console SteamOS de Valve</sub>
+  <b><a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=d8fe32650df59e4b587c0f3faa6e2762&amp;ref_=as_li_ss_tl">Steam Deck OLED</a></b><br><sub>Valve's SteamOS handheld</sub>
 </td>
 <td align="center" width="33%">
   <a href="https://www.amazon.fr/dp/B0DWFY5G1N?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=27547fe4ab70827a6cc109b4a539d5a4&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0DWFY5G1N.jpg" width="200" alt="Lenovo Legion Go S"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0DWFY5G1N?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=27547fe4ab70827a6cc109b4a539d5a4&amp;ref_=as_li_ss_tl">Lenovo Legion Go S</a></b><br><sub>Livrée sous SteamOS</sub>
+  <b><a href="https://www.amazon.fr/dp/B0DWFY5G1N?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=27547fe4ab70827a6cc109b4a539d5a4&amp;ref_=as_li_ss_tl">Lenovo Legion Go S</a></b><br><sub>Ships with SteamOS</sub>
 </td>
 <td align="center" width="33%">
   <a href="https://www.amazon.fr/dp/B0FYR394K5?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=094466eff2c7717ecebc49e8bf0f3a85&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0FYR394K5.jpg" width="200" alt="Lenovo Legion Go 2"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0FYR394K5?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=094466eff2c7717ecebc49e8bf0f3a85&amp;ref_=as_li_ss_tl">Lenovo Legion Go 2</a></b><br><sub>Écran OLED 8,8&quot; · compatible SteamOS</sub>
+  <b><a href="https://www.amazon.fr/dp/B0FYR394K5?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=094466eff2c7717ecebc49e8bf0f3a85&amp;ref_=as_li_ss_tl">Lenovo Legion Go 2</a></b><br><sub>8.8&quot; OLED screen · SteamOS compatible</sub>
 </td>
 </tr>
 </table>
 
-<sub>En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. · As an Amazon Associate I earn from qualifying purchases.</sub>
+<sub>As an Amazon Associate I earn from qualifying purchases. · En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.</sub>
 
-## ☕ Offrez-moi un café
+## ☕ Buy me a coffee
 
-Ce projet est gratuit et open source. S'il vous est utile, vous pouvez me remercier
-en m'offrant un café — il suffit de scanner ce QR code PayPal. Merci beaucoup ! 🙏
+This project is free and open source. If it helps you, you can say thanks
+by buying me a coffee — just scan this PayPal QR code. Thank you very much! 🙏
 
 <p align="center">
-  <img src="docs/paypal-qr.png" alt="QR code PayPal pour offrir un café" width="220" />
+  <img src="docs/paypal-qr.png" alt="PayPal QR code to buy me a coffee" width="220" />
 </p>
 
-## 📄 Licence
+## 📄 License
 
-**MIT** — voir [LICENSE](LICENSE). Projet non officiel, non affilié à Valve ni à Lenovo. Steam et SteamOS sont des marques de Valve Corporation.
+**MIT** — see [LICENSE](LICENSE). Unofficial project, not affiliated with Valve or Lenovo. Steam and SteamOS are trademarks of Valve Corporation.
