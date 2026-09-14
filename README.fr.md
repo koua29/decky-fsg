@@ -87,23 +87,23 @@ npm run build
 
 Paquet : un dossier `FSG/` contenant `dist/`, `main.py`, `plugin.json`, `package.json`, `LICENSE` et `README.md`.
 
-## 🎮 Consoles SteamOS
+## 🎮 Accessoires SteamOS
 
-*Liens partenaires Amazon : si vous achetez via ces liens, le projet touche une petite commission, sans surcoût pour vous. Ce sont des consoles portables sous SteamOS, sur lesquelles FSG s'installe avec Decky Loader.*
+*Liens partenaires Amazon : si vous achetez via ces liens, le projet touche une petite commission, sans surcoût pour vous. Des accessoires pour les consoles portables SteamOS sur lesquelles FSG s'installe.*
 
 <table>
 <tr>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=d8fe32650df59e4b587c0f3faa6e2762&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0CQ3RWQQZ.jpg" width="200" alt="Steam Deck OLED"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0CQ3RWQQZ?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=d8fe32650df59e4b587c0f3faa6e2762&amp;ref_=as_li_ss_tl">Steam Deck OLED</a></b><br><sub>La console SteamOS de Valve</sub>
+  <a href="https://www.amazon.fr/dp/B0DCWBT22Y?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0DCWBT22Y.jpg" width="200" alt="SanDisk Extreme Go 256 Go"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0DCWBT22Y?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">SanDisk Extreme Go 256 Go</a></b><br><sub>Carte microSD : de la place pour les jeux récupérés</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0DWFY5G1N?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=27547fe4ab70827a6cc109b4a539d5a4&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0DWFY5G1N.jpg" width="200" alt="Lenovo Legion Go S"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0DWFY5G1N?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=27547fe4ab70827a6cc109b4a539d5a4&amp;ref_=as_li_ss_tl">Lenovo Legion Go S</a></b><br><sub>Livrée sous SteamOS</sub>
+  <a href="https://www.amazon.fr/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0BRK96DJX.jpg" width="200" alt="Étui rigide JSAUX"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">Étui rigide JSAUX</a></b><br><sub>Étui de transport pour Steam Deck et Steam Deck OLED</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0FYR394K5?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=094466eff2c7717ecebc49e8bf0f3a85&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0FYR394K5.jpg" width="200" alt="Lenovo Legion Go 2"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0FYR394K5?&amp;linkCode=ll2&amp;tag=koua29-21&amp;linkId=094466eff2c7717ecebc49e8bf0f3a85&amp;ref_=as_li_ss_tl">Lenovo Legion Go 2</a></b><br><sub>Écran OLED 8,8&quot; · compatible SteamOS</sub>
+  <a href="https://www.amazon.fr/dp/B0B5SSL6FL?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0B5SSL6FL.jpg" width="200" alt="Verre trempé ivoler (lot de 2)"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0B5SSL6FL?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">Verre trempé ivoler (lot de 2)</a></b><br><sub>Protection d'écran pour Steam Deck et Steam Deck OLED</sub>
 </td>
 </tr>
 </table>
