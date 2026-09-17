@@ -94,11 +94,18 @@ const en = {
 
   claim: {
     not_found: "Game not found, refresh the list.",
-    no_session: "No Steam session found: open the Store once, then try again.",
-    no_subid: "No free licence found: use the Store page instead.",
-    network_error: (detail: string) => `Network error: ${detail}`,
-    http_error: (detail: string) => `Steam refused the request (HTTP ${detail}).`,
-    not_confirmed: "Steam did not confirm the addition.",
+    no_session: "No Steam session found: open the Steam Store once on this console (Library → Store), then try again.",
+    no_subid: "No free licence button on the store page: the offer is probably over. Check the game's Steam page.",
+    network_error: (detail: string) =>
+      `Network error: ${detail}. Check the console's connection, then try again.`,
+    login_required:
+      "Steam sent the request to its login page: open the Steam Store on this console, make sure you are signed in, then try again.",
+    redirected: (detail: string) =>
+      `Steam answered with a redirect (HTTP ${detail}) and the game is still missing. Open the Steam Store once, then try again; if it keeps failing, claim the game from its Steam page.`,
+    http_error: (detail: string) =>
+      `Steam answered HTTP ${detail} and the game is still missing from your library. Claim it from its Steam page; the details are in the log (~/homebrew/logs/FSG).`,
+    not_confirmed:
+      "Steam took the request but the game is not in your library yet. Wait a few seconds and refresh; if it stays out, claim it from its Steam page.",
     added: "Added to your library.",
   },
 };
@@ -179,11 +186,18 @@ const fr: typeof en = {
 
   claim: {
     not_found: "Jeu introuvable, actualise la liste.",
-    no_session: "Session Steam introuvable : ouvre le Store une fois puis réessaie.",
-    no_subid: "Aucune licence gratuite trouvée : passe par la fiche Store.",
-    network_error: (detail) => `Erreur réseau : ${detail}`,
-    http_error: (detail) => `Steam a refusé la demande (HTTP ${detail}).`,
-    not_confirmed: "Steam n'a pas confirmé l'ajout.",
+    no_session:
+      "Session Steam introuvable : ouvre une fois le Store Steam sur la console (Bibliothèque → Store), puis réessaie.",
+    no_subid: "Pas de bouton de licence gratuite sur la fiche : la promo est sûrement finie. Vérifie la fiche Steam du jeu.",
+    network_error: (detail) => `Erreur réseau : ${detail}. Vérifie la connexion de la console, puis réessaie.`,
+    login_required:
+      "Steam a renvoyé la demande vers sa page de connexion : ouvre le Store Steam sur la console, vérifie que tu es bien connecté, puis réessaie.",
+    redirected: (detail) =>
+      `Steam a répondu par une redirection (HTTP ${detail}) et le jeu n'est toujours pas dans ta bibliothèque. Ouvre une fois le Store Steam puis réessaie ; si ça continue, récupère le jeu depuis sa fiche Steam.`,
+    http_error: (detail) =>
+      `Steam a répondu HTTP ${detail} et le jeu n'est toujours pas dans ta bibliothèque. Récupère-le depuis sa fiche Steam ; le détail est dans le journal (~/homebrew/logs/FSG).`,
+    not_confirmed:
+      "Steam a accepté la demande mais le jeu n'est pas encore dans ta bibliothèque. Attends quelques secondes et actualise ; s'il n'apparaît pas, récupère-le depuis sa fiche Steam.",
     added: "Ajouté à ta bibliothèque.",
   },
 };

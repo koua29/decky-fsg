@@ -102,6 +102,30 @@ def _http(url, data=None, cookies=None, timeout=20):
         return resp.read().decode("utf-8", "replace")
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Keeps 3xx answers instead of following them: a redirect is an answer too."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _post_no_redirect(url, data, cookies, timeout=20):
+    """POST that reports the raw answer: (status, Location, body)."""
+    headers = {"User-Agent": USER_AGENT,
+               "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+               "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+               "Origin": STORE,
+               "Referer": STORE + "/",
+               "Cookie": "; ".join(f"{k}={v}" for k, v in cookies.items())}
+    req = urllib.request.Request(url, data=urllib.parse.urlencode(data).encode(), headers=headers)
+    opener = urllib.request.build_opener(_NoRedirect, urllib.request.HTTPSHandler(context=_SSL))
+    try:
+        with opener.open(req, timeout=timeout) as resp:
+            return resp.status, resp.headers.get("Location", ""), resp.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, e.headers.get("Location", "") if e.headers else "", e.read().decode("utf-8", "replace")
+
+
 # --------------------------------------------------------------------------- CEF DevTools
 # A tiny stdlib WebSocket client, just enough to send one DevTools command to
 # Steam's browser and read the answer.
@@ -330,18 +354,39 @@ def _fetch_games(include_dlc):
 
 
 def _claim_license(session, game):
+    """Asks Steam for the free licence, then trusts the account's licence list.
+
+    Steam often answers with a redirect (302) instead of a body, and a redirect
+    says nothing about the result: only the licence list does. So the status is
+    logged, the ownership check runs in every case, and a message is returned
+    only once the game is still missing.
+    """
     try:
-        reply = _http(f"{STORE}/freelicense/addfreelicense/{game['subid']}",
-                      data={"ajax": "true", "sessionid": session["sessionid"]}, cookies=session)
-        decky.logger.info("addfreelicense %s -> %s", game["subid"], reply[:200])
-    except urllib.error.HTTPError as e:
-        return False, "http_error", str(e.code)
-    # The reply format is undocumented: trust the account's licence list instead.
+        status, location, reply = _post_no_redirect(
+            f"{STORE}/freelicense/addfreelicense/{game['subid']}",
+            {"ajax": "true", "sessionid": session["sessionid"]}, session)
+    except (OSError, ValueError) as e:
+        return False, "network_error", str(e)
+    decky.logger.info("addfreelicense %s -> HTTP %s%s %s", game["subid"], status,
+                      f" -> {location}" if location else "", reply[:200])
+
     for delay in (1, 3, 5):
         time.sleep(delay)
-        apps, packages = _owned(session)
+        try:
+            apps, packages = _owned(session)
+        except (OSError, ValueError) as e:
+            decky.logger.warning("Ownership check failed: %s", e)
+            continue
         if game["appid"] in apps or game["subid"] in packages:
             return True, "added", ""
+
+    target = (location or reply)[:400].lower()
+    if 300 <= status < 400 and ("login" in target or "signin" in target):
+        return False, "login_required", ""
+    if 300 <= status < 400:
+        return False, "redirected", str(status)
+    if status >= 400:
+        return False, "http_error", str(status)
     return False, "not_confirmed", ""
 
 
