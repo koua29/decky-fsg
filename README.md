@@ -33,6 +33,7 @@ On September 14, 2026, **Crystal Crisis** (€16.79) went 100% off: FSG **added 
 - **Automatic add** (option, on by default): checks every hour; every new game at €0 is added and a notification shows up.
 - Optional free DLC, notifications can be turned off.
 - **Open SteamDB**: shows upcoming promos in Steam's browser.
+- **Value claimed**: total normal price of the games FSG added for you, with the details game by game, on a **dedicated view** of the panel ("See the statistics" button, with a way back), along with the value of your Steam library. This calculation **only** starts when you press "Recalculate the statistics": nothing runs in the background on the console.
 - **English or French interface**, picked automatically from Steam's language (game names and prices follow too).
 
 ## 📥 Installation

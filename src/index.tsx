@@ -13,55 +13,13 @@ import {
   removeEventListener,
   toaster,
 } from "@decky/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import logo from "../assets/fsg-logo.png";
-import { claimMessage, lang, locale, t } from "./i18n";
-
-interface Game {
-  appid: number;
-  subid: number | null;
-  name: string;
-  type: string;
-  image: string;
-  original_price: string;
-  ends: string;
-  owned: boolean;
-}
-
-interface Settings {
-  auto_claim: boolean;
-  include_dlc: boolean;
-  notify: boolean;
-  language: string;
-  beta: boolean;
-}
-
-interface Update {
-  current: string;
-  latest: string;
-  available: boolean;
-  rollback: boolean;
-  prerelease: boolean;
-  channel: string;
-  title: string;
-  notes: string;
-  url: string;
-  zip_url: string;
-  zip_sha256: string;
-}
-
-interface State {
-  games: Game[];
-  last_check: number;
-  logged_in: boolean | null;
-  error: string;
-  checking: boolean;
-  settings: Settings;
-  claimed: { appid: number; name: string; ts: number }[];
-  version: string;
-  update: Update | null;
-}
+import { FocusRow } from "./focus";
+import { claimMessage, lang, t } from "./i18n";
+import { StatsPanel, formatDate } from "./stats";
+import type { Game, Settings, State, Update } from "./types";
 
 interface ClaimResult {
   ok: boolean;
@@ -83,6 +41,7 @@ const INSTALL_TYPE_UPDATE = 2; // InstallType.UPDATE in Decky Loader
 
 const muted = { fontSize: "12px", lineHeight: "16px", opacity: 0.7 };
 
+
 function Logo({ size }: { size: string }) {
   return <img src={logo} style={{ width: size, height: size, borderRadius: "50%" }} />;
 }
@@ -103,31 +62,35 @@ async function installUpdate(update: Update) {
   // Same call as Decky's own store: Decky shows its install prompt, checks the
   // SHA-256 of the zip, then reloads the plugin.
   const backend = (window as any).DeckyBackend;
-  if (backend?.call) {
-    await backend.call(
-      "utilities/install_plugin",
-      update.zip_url,
-      PLUGIN_NAME,
-      update.latest,
-      update.zip_sha256,
-      INSTALL_TYPE_UPDATE,
-    );
-  } else {
+  if (!backend?.call) {
     openWeb(update.url);
+    return;
   }
+  await backend.call(
+    "utilities/install_plugin",
+    update.zip_url,
+    PLUGIN_NAME,
+    update.latest,
+    update.zip_sha256,
+    INSTALL_TYPE_UPDATE,
+  );
+  // Decky installs the files but leaves this panel mounted on the old code, so
+  // ask its loader to import the new build, then close the menu: reopening FSG
+  // mounts the new version even when the loader has no such hook.
+  const loader = (window as any).DeckyPluginLoader;
+  try {
+    await (loader?.importPlugin?.(PLUGIN_NAME, update.latest) ??
+      loader?.loadPlugin?.(PLUGIN_NAME) ??
+      Promise.resolve());
+  } catch (e) {
+    console.error("[FSG] plugin reload failed", e);
+  }
+  toaster.toast({ title: t.toastUpdated, body: t.toastUpdatedBody, logo: <Logo size="100%" /> });
+  Navigation.CloseSideMenus();
 }
 
-function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleString(locale, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function UpdateBanner({ update }: { update: Update }) {
+/** Rows shown right under the "check for updates" button, so the answer appears where you asked. */
+function UpdateRows({ update }: { update: Update }) {
   const [installing, setInstalling] = useState(false);
 
   const onInstall = async () => {
@@ -140,9 +103,9 @@ function UpdateBanner({ update }: { update: Update }) {
   };
 
   return (
-    <PanelSection title={t.updateSection}>
+    <>
       <PanelSectionRow>
-        <div style={muted}>
+        <div style={{ ...muted, opacity: 1 }}>
           {t.updateLine(update.latest, update.current)}
           {update.prerelease && ` [${t.betaTag}]`}
           {update.title && <div style={{ fontWeight: "bold" }}>{update.title}</div>}
@@ -162,7 +125,7 @@ function UpdateBanner({ update }: { update: Update }) {
           {t.seeChanges}
         </ButtonItem>
       </PanelSectionRow>
-    </PanelSection>
+    </>
   );
 }
 
@@ -183,7 +146,11 @@ function GameCard({
   return (
     <>
       <PanelSectionRow>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
+        <FocusRow
+          block="center"
+          style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}
+          onActivate={() => openStore(game.appid)}
+        >
           {game.image && <img src={game.image} style={{ width: "100%", borderRadius: "4px" }} />}
           <div style={{ fontWeight: "bold" }}>{game.name}</div>
           <div style={muted}>
@@ -196,7 +163,7 @@ function GameCard({
             {game.type !== "game" && ` · ${t.dlc}`}
           </div>
           {game.ends && <div style={muted}>{game.ends}</div>}
-        </div>
+        </FocusRow>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem
@@ -221,6 +188,9 @@ function Content() {
   const [busy, setBusy] = useState(false);
   const [claiming, setClaiming] = useState<number | null>(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const topRow = useRef<HTMLDivElement>(null);
+  const returning = useRef(false);
 
   const doRefresh = async () => {
     setBusy(true);
@@ -247,6 +217,13 @@ function Content() {
     };
   }, []);
 
+  useEffect(() => {
+    if (showStats || !returning.current) return;
+    returning.current = false;
+    const id = setTimeout(() => topRow.current?.focus(), 60);
+    return () => clearTimeout(id);
+  }, [showStats]);
+
   const onClaim = async (game: Game) => {
     setClaiming(game.appid);
     try {
@@ -269,7 +246,13 @@ function Content() {
       if (update) setState((s) => (s ? { ...s, update } : s));
       if (!update) {
         toaster.toast({ title: t.toastCheckFailed, body: t.toastCheckFailedBody });
-      } else if (!update.available) {
+      } else if (update.available || update.rollback) {
+        toaster.toast({
+          title: t.toastUpdateFound(update.latest),
+          body: t.toastUpdateFoundBody,
+          logo: <Logo size="100%" />,
+        });
+      } else {
         toaster.toast({ title: t.toastUpToDate, body: t.version(update.current), logo: <Logo size="100%" /> });
       }
     } finally {
@@ -292,19 +275,31 @@ function Content() {
     );
   }
 
+  if (showStats) {
+    return (
+      <StatsPanel
+        state={state}
+        setState={setState}
+        onBack={() => {
+          returning.current = true;
+          setShowStats(false);
+        }}
+      />
+    );
+  }
+
   const checking = busy || state.checking;
+  const update = state.update;
 
   return (
     <>
       <PanelSection>
         <PanelSectionRow>
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <FocusRow elementRef={topRow} block="start" style={{ display: "flex", justifyContent: "center" }}>
             <Logo size="96px" />
-          </div>
+          </FocusRow>
         </PanelSectionRow>
       </PanelSection>
-
-      {(state.update?.available || state.update?.rollback) && <UpdateBanner update={state.update} />}
 
       <PanelSection title={t.freeSection}>
         {state.logged_in === false && (
@@ -375,36 +370,36 @@ function Content() {
             onChange={(v) => toggle("beta", v)}
           />
         </PanelSectionRow>
-        <PanelSectionRow>
-          <ButtonItem layout="below" disabled={checkingUpdate} onClick={onCheckUpdate}>
-            {checkingUpdate ? t.searching : t.checkUpdates}
-          </ButtonItem>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <div style={muted}>
-            {t.version(state.version)}
-            {state.settings.beta && ` · ${t.betaTag}`}
-          </div>
-        </PanelSectionRow>
       </PanelSection>
-
-      {state.claimed.length > 0 && (
-        <PanelSection title={t.historySection}>
-          {state.claimed.map((c) => (
-            <PanelSectionRow key={`${c.appid}-${c.ts}`}>
-              <div style={muted}>
-                {c.name} — {formatDate(c.ts)}
-              </div>
-            </PanelSectionRow>
-          ))}
-        </PanelSection>
-      )}
 
       <PanelSection title={t.upcomingSection}>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={() => openWeb(STEAMDB_FREE_URL)}>
             {t.openSteamDB}
           </ButtonItem>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t.statsTitle}>
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={() => setShowStats(true)}>
+            {t.statsButton}
+          </ButtonItem>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t.updatesSection}>
+        <PanelSectionRow>
+          <ButtonItem layout="below" disabled={checkingUpdate} onClick={onCheckUpdate}>
+            {checkingUpdate ? t.searching : t.checkUpdates}
+          </ButtonItem>
+        </PanelSectionRow>
+        {(update?.available || update?.rollback) && <UpdateRows update={update} />}
+        <PanelSectionRow>
+          <div style={muted}>
+            {t.version(state.version)}
+            {state.settings.beta && ` · ${t.betaTag}`}
+          </div>
         </PanelSectionRow>
       </PanelSection>
     </>
