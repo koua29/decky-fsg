@@ -34,6 +34,7 @@ const refresh = callable<[], State>("refresh");
 const claim = callable<[appid: number], ClaimResult>("claim");
 const setSetting = callable<[key: string, value: boolean | string], Settings>("set_setting");
 const checkUpdate = callable<[], Update | null>("check_update");
+const checkSession = callable<[], State>("check_session");
 
 const STEAMDB_FREE_URL = "https://steamdb.info/upcoming/free/";
 const PLUGIN_NAME = "FSG";
@@ -50,6 +51,13 @@ function openStore(appid: number) {
   const steam = (window as any).SteamClient;
   if (steam?.URL?.ExecuteSteamURL) steam.URL.ExecuteSteamURL(`steam://store/${appid}`);
   else Navigation.NavigateToExternalWeb(`https://store.steampowered.com/app/${appid}/`);
+  Navigation.CloseSideMenus();
+}
+
+function openStoreHome() {
+  const steam = (window as any).SteamClient;
+  if (steam?.URL?.ExecuteSteamURL) steam.URL.ExecuteSteamURL("steam://store/");
+  else Navigation.NavigateToExternalWeb("https://store.steampowered.com/");
   Navigation.CloseSideMenus();
 }
 
@@ -210,6 +218,8 @@ function Content() {
         setState((prev) => (prev ? { ...prev, settings } : prev));
       }
       if (!s.last_check) doRefresh();
+      // The light must be right as soon as the panel opens, even hours after the last check.
+      else checkSession().then(setState).catch(() => undefined);
     });
     const listener = addEventListener<[State]>("fsg_state", setState);
     return () => {
@@ -302,10 +312,32 @@ function Content() {
       </PanelSection>
 
       <PanelSection title={t.freeSection}>
+        <PanelSectionRow>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+            <span
+              style={{
+                width: "10px",
+                height: "10px",
+                borderRadius: "50%",
+                flexShrink: 0,
+                backgroundColor:
+                  state.logged_in === true ? "#5ad46a" : state.logged_in === false ? "#ff5c5c" : "#8b8b8b",
+              }}
+            />
+            {state.logged_in === true ? t.sessionOk : state.logged_in === false ? t.sessionMissing : t.sessionUnknown}
+          </div>
+        </PanelSectionRow>
         {state.logged_in === false && (
-          <PanelSectionRow>
-            <div style={{ ...muted, color: "#ffb04a", opacity: 1 }}>{t.noSession}</div>
-          </PanelSectionRow>
+          <>
+            <PanelSectionRow>
+              <div style={{ ...muted, color: "#ffb04a", opacity: 1 }}>{t.sessionHint}</div>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ButtonItem layout="below" onClick={openStoreHome}>
+                {t.openStoreButton}
+              </ButtonItem>
+            </PanelSectionRow>
+          </>
         )}
         {state.error && (
           <PanelSectionRow>

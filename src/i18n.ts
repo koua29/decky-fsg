@@ -28,6 +28,11 @@ const en = {
   seeChanges: "What's new",
 
   freeSection: "Free to keep",
+  sessionOk: "Steam session detected",
+  sessionMissing: "No Steam session",
+  sessionUnknown: "Steam session not checked yet",
+  sessionHint: "FSG needs you signed in to the Steam Store on this console to add a game.",
+  openStoreButton: "Open the Steam Store",
   noSession: "No Steam session found: open the Store once, then refresh.",
   checkFailed: (detail: string) => `Check failed: ${detail}`,
   noGames: "No Steam game is 100% off right now.",
@@ -120,6 +125,11 @@ const fr: typeof en = {
   seeChanges: "Voir les nouveautés",
 
   freeSection: "Gratuits à garder",
+  sessionOk: "Session Steam détectée",
+  sessionMissing: "Session Steam absente",
+  sessionUnknown: "Session Steam pas encore vérifiée",
+  sessionHint: "FSG a besoin que tu sois connecté au Store Steam sur la console pour ajouter un jeu.",
+  openStoreButton: "Ouvrir le Store Steam",
   noSession: "Session Steam introuvable : ouvre le Store une fois, puis actualise.",
   checkFailed: (detail) => `Vérification impossible : ${detail}`,
   noGames: "Aucun jeu remisé à 100 % sur Steam en ce moment.",

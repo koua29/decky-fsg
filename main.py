@@ -478,6 +478,12 @@ class Plugin:
         await self._check()
         return self._snapshot()
 
+    async def check_session(self):
+        """Re-reads Steam's browser cookies right now, for the session light."""
+        session = await asyncio.to_thread(_session)
+        self.logged_in = session is not None
+        return self._snapshot()
+
     async def claim(self, appid):
         async with self._get_lock():
             game = next((g for g in self.games if g["appid"] == appid), None)
