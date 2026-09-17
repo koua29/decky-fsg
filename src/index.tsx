@@ -146,9 +146,12 @@ function GameCard({
   claiming: boolean;
   onClaim: (game: Game) => void;
 }) {
+  const needsBase = !game.owned && !!game.base_appid && !game.base_owned;
+
   let label = t.addToLibrary;
   if (game.owned) label = t.alreadyOwned;
   else if (claiming) label = t.adding;
+  else if (needsBase) label = t.requiresBase(game.base_name);
   else if (!game.subid) label = t.addFromStore;
 
   return (
@@ -170,18 +173,28 @@ function GameCard({
             <span style={{ color: "#a4d007" }}>{t.free}</span>
             {game.type !== "game" && ` · ${t.dlc}`}
           </div>
+          {needsBase && (
+            <div style={{ ...muted, color: "#ffb04a", opacity: 1 }}>{t.requiresBase(game.base_name)}</div>
+          )}
           {game.ends && <div style={muted}>{game.ends}</div>}
         </FocusRow>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem
           layout="below"
-          disabled={game.owned || claiming}
+          disabled={game.owned || claiming || needsBase}
           onClick={() => (game.subid ? onClaim(game) : openStore(game.appid))}
         >
           {label}
         </ButtonItem>
       </PanelSectionRow>
+      {needsBase && game.base_appid && (
+        <PanelSectionRow>
+          <ButtonItem layout="below" onClick={() => openStore(game.base_appid as number)}>
+            {t.openBaseGame}
+          </ButtonItem>
+        </PanelSectionRow>
+      )}
       <PanelSectionRow>
         <ButtonItem layout="below" onClick={() => openStore(game.appid)}>
           {t.seeOnSteam}

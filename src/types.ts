@@ -7,6 +7,9 @@ export interface Game {
   original_price: string;
   ends: string;
   owned: boolean;
+  base_appid: number | null;
+  base_name: string;
+  base_owned: boolean;
 }
 
 export interface Settings {

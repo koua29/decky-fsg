@@ -33,6 +33,8 @@ const en = {
   sessionUnknown: "Steam session not checked yet",
   sessionHint: "FSG needs you signed in to the Steam Store on this console to add a game.",
   openStoreButton: "Open the Steam Store",
+  requiresBase: (name: string) => `Needs ${name} in your library`,
+  openBaseGame: "Open the base game on Steam",
   noSession: "No Steam session found: open the Store once, then refresh.",
   checkFailed: (detail: string) => `Check failed: ${detail}`,
   noGames: "No Steam game is 100% off right now.",
@@ -111,6 +113,8 @@ const en = {
       `Steam answered HTTP ${detail} and the game is still missing from your library. Claim it from its Steam page; the details are in the log (~/homebrew/logs/FSG).`,
     not_confirmed:
       "Steam took the request but the game is not in your library yet. Wait a few seconds and refresh; if it stays out, claim it from its Steam page.",
+    base_required: (detail: string) =>
+      `This DLC is free, but Steam only gives it to owners of ${detail || "the base game"}. Get the game first, then claim the DLC.`,
     added: "Added to your library.",
   },
 };
@@ -130,6 +134,8 @@ const fr: typeof en = {
   sessionUnknown: "Session Steam pas encore vérifiée",
   sessionHint: "FSG a besoin que tu sois connecté au Store Steam sur la console pour ajouter un jeu.",
   openStoreButton: "Ouvrir le Store Steam",
+  requiresBase: (name) => `Nécessite ${name} dans ta bibliothèque`,
+  openBaseGame: "Ouvrir le jeu de base sur Steam",
   noSession: "Session Steam introuvable : ouvre le Store une fois, puis actualise.",
   checkFailed: (detail) => `Vérification impossible : ${detail}`,
   noGames: "Aucun jeu remisé à 100 % sur Steam en ce moment.",
@@ -208,6 +214,8 @@ const fr: typeof en = {
       `Steam a répondu HTTP ${detail} et le jeu n'est toujours pas dans ta bibliothèque. Récupère-le depuis sa fiche Steam ; le détail est dans le journal (~/homebrew/logs/FSG).`,
     not_confirmed:
       "Steam a accepté la demande mais le jeu n'est pas encore dans ta bibliothèque. Attends quelques secondes et actualise ; s'il n'apparaît pas, récupère-le depuis sa fiche Steam.",
+    base_required: (detail) =>
+      `Ce DLC est gratuit, mais Steam ne le donne qu'aux possesseurs de ${detail || "du jeu de base"}. Prends d'abord le jeu, puis récupère le DLC.`,
     added: "Ajouté à ta bibliothèque.",
   },
 };

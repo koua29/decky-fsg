@@ -287,6 +287,13 @@ def _build_game(appid):
         subids = [s["packageid"] for g in data.get("package_groups", []) for s in g.get("subs", [])
                   if s.get("is_free_license") or s.get("price_in_cents_with_discount") == 0]
     price = data.get("price_overview") or {}
+    # A DLC carries the game it belongs to: Steam refuses its free licence
+    # unless that game is already in the account.
+    full = data.get("fullgame") or {}
+    try:
+        base_appid = int(full.get("appid")) if full.get("appid") else None
+    except (TypeError, ValueError):
+        base_appid = None
     return {
         "appid": appid,
         "subid": subids[0] if subids else None,
@@ -298,6 +305,9 @@ def _build_game(appid):
         "currency": price.get("currency") or "",
         "ends": ends,
         "owned": False,
+        "base_appid": base_appid,
+        "base_name": full.get("name") or "",
+        "base_owned": True,
     }
 
 
@@ -350,6 +360,7 @@ def _fetch_games(include_dlc):
         else:
             for game in games:
                 game["owned"] = game["appid"] in apps or game["subid"] in packages
+                game["base_owned"] = not game["base_appid"] or game["base_appid"] in apps
     return games, session
 
 
@@ -629,7 +640,8 @@ class Plugin:
             if game["owned"]:
                 continue
             attempts = self.memory["attempts"].get(str(game["subid"]), 0)
-            if self.settings["auto_claim"] and session and game["subid"] and attempts < MAX_ATTEMPTS:
+            if (self.settings["auto_claim"] and session and game["subid"]
+                    and game.get("base_owned", True) and attempts < MAX_ATTEMPTS):
                 ok, _, _ = await self._claim(game, session=session, announce=True)
                 if ok:
                     continue
@@ -670,6 +682,9 @@ class Plugin:
             return False, "no_session", ""
         if not game.get("subid"):
             return False, "no_subid", ""
+        if game.get("base_appid") and not game.get("base_owned", True):
+            # Steam answers a free DLC licence with a refusal when the game is missing.
+            return False, "base_required", game.get("base_name", "")
         try:
             ok, code, detail = await asyncio.to_thread(_claim_license, session, game)
         except (OSError, ValueError) as e:
