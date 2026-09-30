@@ -95,16 +95,16 @@ Paquet : un dossier `FSG/` contenant `dist/`, `main.py`, `plugin.json`, `package
 <table>
 <tr>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0DCWBT22Y?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0DCWBT22Y.jpg" width="200" alt="SanDisk Extreme Go 256 Go"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0DCWBT22Y?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">SanDisk Extreme Go 256 Go</a></b><br><sub>Carte microSD : de la place pour les jeux récupérés</sub>
+  <a href="https://www.amazon.fr/dp/B0B2DCZDJZ?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0B2DCZDJZ.jpg" width="200" alt="SanDisk Extreme 256 Go microSD"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B0B2DCZDJZ?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">SanDisk Extreme 256 Go microSD</a></b><br><sub>De la place pour les jeux récupérés</sub>
 </td>
 <td align="center" width="33%">
   <a href="https://www.amazon.fr/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0BRK96DJX.jpg" width="200" alt="Étui rigide JSAUX"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">Étui rigide JSAUX</a></b><br><sub>Étui de transport pour Steam Deck et Steam Deck OLED</sub>
+  <b><a href="https://www.amazon.fr/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">Étui rigide JSAUX</a></b><br><sub>Housse de transport pour Steam Deck et Steam Deck OLED</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://www.amazon.fr/dp/B0B5SSL6FL?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0B5SSL6FL.jpg" width="200" alt="Verre trempé ivoler (lot de 2)"></a><br>
-  <b><a href="https://www.amazon.fr/dp/B0B5SSL6FL?th=1&amp;linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">Verre trempé ivoler (lot de 2)</a></b><br><sub>Protection d'écran pour Steam Deck et Steam Deck OLED</sub>
+  <a href="https://www.amazon.fr/dp/B09TPF6NQ8?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B09TPF6NQ8.jpg" width="200" alt="Verre trempé amFilm"></a><br>
+  <b><a href="https://www.amazon.fr/dp/B09TPF6NQ8?linkCode=ll2&amp;tag=koua29-21&amp;ref_=as_li_ss_tl">Verre trempé amFilm</a></b><br><sub>Protection d'écran pour Steam Deck et Steam Deck OLED</sub>
 </td>
 </tr>
 </table>
