@@ -95,16 +95,16 @@ Package: a `FSG/` folder containing `dist/`, `main.py`, `plugin.json`, `package.
 <table>
 <tr>
 <td align="center" width="33%">
-  <a href="https://www.amazon.com/dp/B0B2DCZDJZ?linkCode=ll2&amp;tag=koua29-20&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0B2DCZDJZ.jpg" width="200" alt="SanDisk Extreme 256 GB microSD"></a><br>
-  <b><a href="https://www.amazon.com/dp/B0B2DCZDJZ?linkCode=ll2&amp;tag=koua29-20&amp;ref_=as_li_ss_tl">SanDisk Extreme 256 GB microSD</a></b><br><sub>Room for the games you claim</sub>
+  <a href="https://www.amazon.com/dp/B0B2DCZDJZ?linkCode=ll2&amp;tag=koua29dfsg-20&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0B2DCZDJZ.jpg" width="200" alt="SanDisk Extreme 256 GB microSD"></a><br>
+  <b><a href="https://www.amazon.com/dp/B0B2DCZDJZ?linkCode=ll2&amp;tag=koua29dfsg-20&amp;ref_=as_li_ss_tl">SanDisk Extreme 256 GB microSD</a></b><br><sub>Room for the games you claim</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://www.amazon.com/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29-20&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0BRK96DJX.jpg" width="200" alt="JSAUX hard case"></a><br>
-  <b><a href="https://www.amazon.com/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29-20&amp;ref_=as_li_ss_tl">JSAUX hard case</a></b><br><sub>Travel case for Steam Deck and Steam Deck OLED</sub>
+  <a href="https://www.amazon.com/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29dfsg-20&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B0BRK96DJX.jpg" width="200" alt="JSAUX hard case"></a><br>
+  <b><a href="https://www.amazon.com/dp/B0BRK96DJX?linkCode=ll2&amp;tag=koua29dfsg-20&amp;ref_=as_li_ss_tl">JSAUX hard case</a></b><br><sub>Travel case for Steam Deck and Steam Deck OLED</sub>
 </td>
 <td align="center" width="33%">
-  <a href="https://www.amazon.com/dp/B09TPF6NQ8?linkCode=ll2&amp;tag=koua29-20&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B09TPF6NQ8.jpg" width="200" alt="amFilm tempered glass"></a><br>
-  <b><a href="https://www.amazon.com/dp/B09TPF6NQ8?linkCode=ll2&amp;tag=koua29-20&amp;ref_=as_li_ss_tl">amFilm tempered glass</a></b><br><sub>Screen protector for Steam Deck and Steam Deck OLED</sub>
+  <a href="https://www.amazon.com/dp/B09TPF6NQ8?linkCode=ll2&amp;tag=koua29dfsg-20&amp;ref_=as_li_ss_tl"><img src="assets/amazon-B09TPF6NQ8.jpg" width="200" alt="amFilm tempered glass"></a><br>
+  <b><a href="https://www.amazon.com/dp/B09TPF6NQ8?linkCode=ll2&amp;tag=koua29dfsg-20&amp;ref_=as_li_ss_tl">amFilm tempered glass</a></b><br><sub>Screen protector for Steam Deck and Steam Deck OLED</sub>
 </td>
 </tr>
 </table>
